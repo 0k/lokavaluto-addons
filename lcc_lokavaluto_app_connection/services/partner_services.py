@@ -67,6 +67,47 @@ class PartnerService(Component):
         return credit_request_list
 
     @restapi.method(
+        [(["/register"], "GET")],
+    )
+    def register(self):
+        token = request.params["token"]
+        accounts = request.params["accounts"]
+        rpb_ids = self.env["res.partner.backend"].sudo().search(
+            [("name", "in", accounts)]
+        )
+        for rpb_id in rpb_ids:
+            self.env["push.registration"].register(
+                "res.partner.backend", rpb_id, token
+            )
+        return True
+
+    @restapi.method(
+        [(["/event"], "GET")],
+    )
+    def event(self):
+        name = request.params["name"]
+        data = request.params["data"]
+        if name == "transaction":
+            src = data["src"]
+            dst = data["dst"]
+            amount = data["amount"]
+            symbol = data["symbol"]
+            rpb_dst = self.env["res.partner.backend"].sudo().search(
+                [("name", "=", dst)]
+            )
+            rpb_src = self.env["res.partner.backend"].sudo().search(
+                [("name", "=", src)]
+            )
+            src_public_profile = rpb_src.partner_id.public_profile_id
+
+            ## Send notification to the recipient
+            self.env["push.notification"].notify(
+                rpb_dst,
+                "Received %s %s from %s" % (amount, symbol, src_public_profile.name))
+
+        return True
+
+    @restapi.method(
         [(["/pending-topup"], "GET")],
     )
     def pending_topup(self):
