@@ -57,6 +57,18 @@ class ResPartnerBackend(models.Model):
             "min_credit_amount": getattr(comchain_product, "sale_min_qty", 0),
             "max_credit_amount": getattr(comchain_product, "sale_max_qty", 0),
         }
+        company = self.partner_id.company_id
+        safe_wallet_partner = company.safe_wallet_partner_id
+        if safe_wallet_partner:
+            safe_wallet_profile_info = safe_wallet_partner.lcc_profile_info()
+            if safe_wallet_profile_info:
+                ## Safe wallet is configured and has a public profile
+                data["safe_wallet_recipient"] = safe_wallet_profile_info[0]
+            else:
+                _logger.error(
+                    "Safe wallet %s has no public profile",
+                    safe_wallet_partner.name,
+                )
         wallet = self.comchain_wallet_parsed
         if wallet:
             data["accounts"].append(
