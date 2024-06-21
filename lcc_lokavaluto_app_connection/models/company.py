@@ -30,7 +30,9 @@ class Company(models.Model):
         for transaction in transactions:
             tx_id = transaction.get("tx_id", False)
             if not tx_id:
-                _logger.warning("Missing transaction id in transaction dict %s" % transaction)
+                _logger.warning(
+                    "Missing transaction id in transaction dict %s" % transaction
+                )
                 continue
             debit_requests = self.env["debit.request"].search(
                 [("transaction_id", "=", tx_id)]
