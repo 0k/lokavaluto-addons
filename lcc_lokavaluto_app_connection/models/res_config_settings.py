@@ -34,3 +34,9 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
         string="Commission Product",
     )
+
+    allow_payments_only_to_companies = fields.Boolean(
+        related="company_id.allow_payments_only_to_companies",
+        readonly=False,
+        string="Allow payments only to companies",
+    )
