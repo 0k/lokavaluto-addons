@@ -100,7 +100,7 @@ class AuthService(Component):
         """Return True if public sign-up is enabled"""
         return request.env["res.users"]._get_signup_invitation_scope() == "b2c"
 
-    @restapi.method([(["/can_reset_password"], "GET")], cors="*")
+    @restapi.method([(["/can_reset_password"], "POST")], cors="*")
     def can_reset_password(self):
         return (
             request.env["ir.config_parameter"]

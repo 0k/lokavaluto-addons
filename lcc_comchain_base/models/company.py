@@ -67,10 +67,21 @@ class Company(models.Model):
                     if not full_tx.is_cc_transaction:
                         continue  # this transaction is not a digital currency transfer
                     if not full_tx.status == 0:
-                        _logger.info("Transaction %s is ignored because status is not 0" % tx.hash)
+                        _logger.info(
+                            "Transaction %s is ignored because status is not 0"
+                            % tx.hash
+                        )
                         continue  # this transaction has been refused by the smart contract
-                    if full_tx.addr_to.lstrip("0x") != company_id.safe_wallet_partner_id.lcc_backend_ids[0].comchain_id:
-                        _logger.info("Transaction %s is ignored because is not towards the Safe Wallet" % tx.hash)
+                    if (
+                        full_tx.addr_to.lstrip("0x")
+                        != company_id.safe_wallet_partner_id.lcc_backend_ids[
+                            0
+                        ].comchain_id
+                    ):
+                        _logger.info(
+                            "Transaction %s is ignored because is not towards the Safe Wallet"
+                            % tx.hash
+                        )
                         continue
                     _logger.info("Transaction %s retrieved" % tx.hash)
                     sender_address = full_tx.addr_from.lstrip("0x")
@@ -85,7 +96,9 @@ class Company(models.Model):
                             "sender": "comchain:%s" % sender_address,
                             "amount": f"{string_amount[0:-2]}.{string_amount[-2:]}",
                             "tx_id": tx.hash,
-                            "tx_timestamp": full_tx.received_at.replace(tzinfo=None) if full_tx.received_at else None,
+                            "tx_timestamp": full_tx.received_at.replace(tzinfo=None)
+                            if full_tx.received_at
+                            else None,
                         }
                     )
 
