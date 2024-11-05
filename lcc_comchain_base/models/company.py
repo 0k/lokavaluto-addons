@@ -49,6 +49,10 @@ class Company(models.Model):
             "Start reconversion check on Comchain from block %s to block %s"
             % (company_id.last_block_checked_nb, last_block_id)
         )
+        if last_block_id < company_id.last_block_checked_nb:
+            raise ValueError(
+                "Inconsistent last processed block is greater than last block id."
+            )
         for block_nb in range(company_id.last_block_checked_nb + 1, last_block_id + 1):
             _logger.info("Get Debit Transactions - read block %s" % block_nb)
             # Get the block transactions
