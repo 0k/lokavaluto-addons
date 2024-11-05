@@ -132,19 +132,16 @@ class Company(models.Model):
         response = company_id.cyclos_rest_call("GET", entrypoint)
         transactions = json.loads(response.text)
         for tx in transactions:
-            try:
-                res.append(
-                    {
-                        "sender": "cyclos:%s" % tx["from"]["user"]["id"],
-                        "amount": tx["amount"],
-                        "tx_id": tx["id"],
-                        "tx_timestamp": datetime.fromisoformat(tx["date"]).replace(
-                            tzinfo=None
-                        ),
-                    }
-                )
-            except Exception as e:
-                _logger.error(tools.format_last_exception())
+            res.append(
+                {
+                    "sender": "cyclos:%s" % tx["from"]["user"]["id"],
+                    "amount": tx["amount"],
+                    "tx_id": tx["id"],
+                    "tx_timestamp": datetime.fromisoformat(tx["date"]).replace(
+                        tzinfo=None
+                    ),
+                }
+            )
         if transactions:
             company_id.cyclos_date_last_reconversion_check = datetime.fromisoformat(
                 transactions[0]["date"]
