@@ -147,3 +147,8 @@ class Company(models.Model):
             }
             company_id.cyclos_date_last_reconversion_check = date_tx
             self.env.cr.commit()
+
+    def _safe_wallet_partners(self):
+        return super(Company, self)._safe_wallet_partners() + [
+            self.cyclos_debit_wallet_partner
+        ]

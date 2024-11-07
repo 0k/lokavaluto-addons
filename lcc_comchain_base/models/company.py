@@ -104,3 +104,8 @@ class Company(models.Model):
 
             company_id.last_block_checked_nb = block_nb
             self.env.cr.commit()
+
+    def _safe_wallet_partners(self):
+        return super(Company, self)._safe_wallet_partners() + [
+            self.safe_wallet_partner_id
+        ]

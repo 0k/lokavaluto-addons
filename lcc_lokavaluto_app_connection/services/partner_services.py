@@ -187,6 +187,9 @@ class PartnerService(Component):
             ("partner_id.active", "=", True),
             ("partner_id.public_profile_id.name", "!=", False),  ## only main profiles
         ]
+        company_id = self.env.user.company_id
+        for safe_wallet_partner in company_id._safe_wallet_partners():
+            domain += [("partner_id.id", "!=", safe_wallet_partner.id)]
         offset = recipients_search_info.offset if recipients_search_info.offset else 0
         limit = recipients_search_info.limit if recipients_search_info.limit else None
         order = (

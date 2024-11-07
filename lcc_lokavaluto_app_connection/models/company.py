@@ -111,3 +111,6 @@ class Company(models.Model):
         - tx_timestamp: the timestamp of the transaction
         """
         yield from []
+
+    def _safe_wallet_partners(self):
+        return []
