@@ -37,7 +37,7 @@ class DebitRequest(models.Model):
         default="draft",
     )
     transaction_id = fields.Char("Transaction ID")
-    transaction_timestamp = fields.Datetime("Transaction Timestamp")
+    transaction_date = fields.Datetime("Transaction Timestamp")
     debit_move_id = fields.Many2one("account.move", string="Debit Invoice")
     debit_move_state = fields.Selection(
         [

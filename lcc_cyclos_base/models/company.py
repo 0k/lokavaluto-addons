@@ -106,10 +106,10 @@ class Company(models.Model):
         """A list of transactions (dictionnary) is expected, with the following data:
         - sender: the Odoo name of the wallet concerned by the debit request,
         - amount: the amount debited from the wallet,
-        - tx_id: the transaction ID in the digital currency backend
-        - tx_timestamp: the timestamp of the transaction
+        - transaction_id: the transaction ID in the digital currency backend
+        - transaction_date: the timestamp of the transaction
         """
-        res = super(Company, self)._retrieve_last_debit_transactions()
+        yield from super(Company, self)._retrieve_last_debit_transactions()
 
         # Retrieve all the debit transactions since the last check minus 1 min
         company_id = self.env.user.company_id
@@ -124,7 +124,7 @@ class Company(models.Model):
 
         # Set all the search criteria in the REST request entrypoint
         entrypoint = (
-            "/transfers?datePeriod=%s&orderBy=dateDesc&toAccountTypes=debit"
+            "/transfers?datePeriod=%s&orderBy=dateAsc&toAccountTypes=debit"
             % encoded_date
         )
 
@@ -132,18 +132,18 @@ class Company(models.Model):
         response = company_id.cyclos_rest_call("GET", entrypoint)
         transactions = json.loads(response.text)
         for tx in transactions:
-            res.append(
-                {
-                    "sender": "cyclos:%s" % tx["from"]["user"]["id"],
-                    "amount": tx["amount"],
-                    "tx_id": tx["id"],
-                    "tx_timestamp": datetime.fromisoformat(tx["date"]).replace(
-                        tzinfo=None
-                    ),
-                }
+            date_tx = datetime.utcfromtimestamp(
+                datetime.fromisoformat(tx["date"]).timestamp()
             )
-        if transactions:
-            company_id.cyclos_date_last_reconversion_check = datetime.fromisoformat(
-                transactions[0]["date"]
-            ).replace(tzinfo=None)
-        return res
+            if ("%0.2f" % (float(tx["amount"]))) != tx["amount"]:
+                raise ValueError(
+                    "Could not convert amount %r to float reliably" % tx["amount"]
+                )
+            yield {
+                "sender": "cyclos:%s" % tx["from"]["user"]["id"],
+                "amount": float(tx["amount"]),
+                "transaction_id": tx["id"],
+                "transaction_date": date_tx,
+            }
+            company_id.cyclos_date_last_reconversion_check = date_tx
+            self.env.cr.commit()

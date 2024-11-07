@@ -33,10 +33,11 @@ class Company(models.Model):
         """A list of transactions (dictionnary) is expected, with the following data:
         - sender: the Odoo name of the wallet concerned by the debit request,
         - amount: the amount debited from the wallet,
-        - tx_id: the transaction ID in the digital currency backend
-        - tx_timestamp: the timestamp of the transaction
+        - transaction_id: the transaction ID in the digital currency backend
+        - transaction_date: the timestamp of the transaction
         """
-        res = super(Company, self)._retrieve_last_debit_transactions()
+
+        yield from super(Company, self)._retrieve_last_debit_transactions()
 
         # Retrieve all the debit transactions from the newly created blocks
         company_id = self.env.user.company_id
@@ -84,24 +85,22 @@ class Company(models.Model):
                     continue
                 _logger.info("Transaction %s retrieved" % tx.hash)
                 sender_address = full_tx.addr_from.lstrip("0x")
-                matched_wallet = self.env["res.partner.backend"].search(
-                    [("comchain_id", "=", sender_address)]
-                )
-                if len(matched_wallet) == 0:
-                    continue  # this transaction comes from a wallet not registered in current Odoo database
-                string_amount = str(full_tx.sent).zfill(2)
-                comchain_res.append(
-                    {
-                        "sender": "comchain:%s" % sender_address,
-                        "amount": f"{string_amount[0:-2]}.{string_amount[-2:]}",
-                        "tx_id": tx.hash,
-                        "tx_timestamp": full_tx.received_at.replace(tzinfo=None)
-                        if full_tx.received_at
-                        else None,
-                    }
-                )
+                ## full_tx.sent will probably need to be a string at some point
+                ## to account for the full capacity of u256 bytes. Let's assume
+                ## they'll be this long.
+                string_amount = str(full_tx.sent).zfill(3)
+                decimal_part = string_amount[0:-2]
+                if int(decimal_part) >= 2**46:
+                    raise ValueError("Sent amount overflows double precision limits")
+                yield {
+                    "sender": "comchain:%s" % sender_address,
+                    "amount": float(f"{string_amount[0:-2]}.{string_amount[-2:]}"),
+                    "transaction_id": tx.hash,
+                    "transaction_date": full_tx.received_at
+                    if full_tx.received_at
+                    else None,
+                }
+                self.env.cr.commit()
 
-        company_id.last_block_checked_nb = last_block_id
-
-        res = res + comchain_res
-        return res
+            company_id.last_block_checked_nb = block_nb
+            self.env.cr.commit()

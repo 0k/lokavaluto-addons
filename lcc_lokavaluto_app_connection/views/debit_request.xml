@@ -5,8 +5,8 @@
         <field name="name">debit.request.view.tree</field>
         <field name="model">debit.request</field>
         <field name="arch" type="xml">
-            <tree string="Debit Requests" default_order="transaction_timestamp desc">
-                <field name="transaction_timestamp" />
+            <tree string="Debit Requests" default_order="transaction_date desc">
+                <field name="transaction_date" />
                 <field name="partner_id" />
                 <field name="wallet_id" />
                 <field name="amount" />
@@ -39,7 +39,7 @@
                         <field name="wallet_id" />
                         <field name="amount" />
                         <field name="transaction_id" />
-                        <field name="transaction_timestamp" />
+                        <field name="transaction_date" />
 			<field name="commission_rule_id" />
                     </group>
                     <group name="documents" string="Linked documents">
