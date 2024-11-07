@@ -53,7 +53,7 @@ class ResPartnerBackend(models.Model):
                 }
             )
 
-        company = self.partner_id.company_id
+        company = self.env.user.company_id
         safe_wallet_partner = company.cyclos_debit_wallet_partner
 
         if safe_wallet_partner:

@@ -87,7 +87,7 @@ class ResPartnerBackend(models.Model):
                 }
             )
 
-        company = self.partner_id.company_id
+        company = self.env.user.company_id
         safe_wallet_partner = company.safe_wallet_partner_id
 
         if safe_wallet_partner:
