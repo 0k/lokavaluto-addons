@@ -6,6 +6,7 @@ class CommissionRule(models.Model):
     commission amount for digital currencies."""
 
     _name = "commission.rule"
+    _description = "Define the way a commission must be applied on debit requests"
 
     name = fields.Char("Name")
     active = fields.Boolean(default=True)

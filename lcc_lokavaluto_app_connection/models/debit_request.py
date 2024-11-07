@@ -14,6 +14,7 @@ class DebitRequest(models.Model):
     ]
 
     _name = "debit.request"
+    _description = "Represent the request of an user to transform alternative currency in stage currency."
 
     active = fields.Boolean(default=True, tracking=True)
     amount = fields.Float("Amount", required=True)

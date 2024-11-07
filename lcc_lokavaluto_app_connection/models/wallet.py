@@ -11,6 +11,9 @@ class ResPartnerBackend(models.Model):
     """Add backend commom property for local currency"""
 
     _name = "res.partner.backend"
+    _description = (
+        "Object in Odoo which match a wallet in a connected transaction backend."
+    )
 
     type = fields.Selection([], string="Type", required=True)
     name = fields.Char("Name", required=True)

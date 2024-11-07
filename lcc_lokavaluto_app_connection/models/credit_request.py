@@ -6,6 +6,7 @@ class CreditRequest(models.Model):
     """Credit request to follow the top up process for user wallets"""
 
     _name = "credit.request"
+    _description = "Represents the request of a user to transform state currency in alternative currency."
 
     amount = fields.Float("Amount", required=True)
     wallet_id = fields.Many2one("res.partner.backend", string="Wallet", required=True)
