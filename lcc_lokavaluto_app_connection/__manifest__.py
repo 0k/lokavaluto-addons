@@ -5,6 +5,7 @@
     "website": "https://lokavaluto.fr",
     "category": "Website",
     "version": "16.0.1.0.0",
+    "licence": "AGPL-3",
     # any module necessary for this one to work correctly
     "depends": [
         "auth_api_key",

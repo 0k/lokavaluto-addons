@@ -9,6 +9,7 @@
     "website": "False",
     "license": "",
     "category": "False",
+    "licence": "AGPL-3",
     "summary": "Add membership registration process on portal",
     # any module necessary for this one to work correctly
     "depends": [

@@ -10,6 +10,7 @@
     "license": "",
     "category": "False",
     "summary": "Add new members app for local complementary currency management",
+    "licence": "AGPL-3",
     # any module necessary for this one to work correctly
     "depends": [
         "base",
