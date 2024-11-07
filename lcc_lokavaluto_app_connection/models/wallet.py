@@ -52,9 +52,6 @@ class ResPartnerBackend(models.Model):
             if record.partner_id.public_profile_id:
                 record.partner_public_name = record.partner_id.public_profile_id.name
 
-    def unlink(self):
-        raise UserError("You can't delete a numeric wallet. Please archive it instead.")
-
     def get_lcc_product(self):
         """Return the numeric lcc product to add in sale orders or invoices.
         Need to be overrided by financial backend add-ons"""
