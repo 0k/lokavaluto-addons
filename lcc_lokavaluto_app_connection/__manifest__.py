@@ -18,6 +18,7 @@
         "partner_favorite",
         "partner_profiles_portal",
         "sale",
+        "sale_management",
     ],
     # always loaded
     "data": [
