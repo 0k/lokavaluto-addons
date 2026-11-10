@@ -3,6 +3,7 @@ import json
 import os
 from unittest.mock import MagicMock, patch
 
+from odoo.exceptions import UserError
 from odoo.modules.module import get_module_path
 from odoo.tests.common import TransactionCase
 
@@ -152,15 +153,37 @@ class TestCyclosRestCall(TransactionCase):
         self.assertEqual(transaction["wallet_uri"], wallet.uri)
         self.assertNotIn("sender", transaction)
 
-    def _registration_group(self, currency, is_company=False):
-        partner = self.env["res.partner"].create(
-            {"name": "New holder", "is_company": is_company}
+    def _new_holder(self, is_company=False, email="holder@example.test"):
+        return self.env["res.partner"].create(
+            {"name": "New holder", "is_company": is_company, "email": email}
         )
+
+    def _registration_payload(self, currency, partner):
+        """Register ``partner`` on ``currency``; return the JSON sent to Cyclos."""
         (sent,) = self._sent_requests(
             lambda: partner.cyclos_add_user(currency),
             response_text='{"user": {"id": "1234"}, "status": "active"}',
         )
-        return json.loads(sent[-1]["data"])["group"]
+        return json.loads(sent[-1]["data"])
+
+    def _registration_group(self, currency, is_company=False):
+        partner = self._new_holder(is_company=is_company)
+        return self._registration_payload(currency, partner)["group"]
+
+    def test_registration_lets_cyclos_email_credentials(self):
+        currency = self._create_cyclos_currency(cyclos_password_type="login")
+        payload = self._registration_payload(currency, self._new_holder())
+        self.assertEqual(payload["passwords"], [{"type": "login"}])
+        self.assertIs(payload["skipActivationEmail"], False)
+
+    def test_registration_refused_without_email(self):
+        currency = self._create_cyclos_currency()
+        partner = self._new_holder(email=False)
+        with patch(REQUEST_PATH) as request:
+            with self.assertRaises(UserError):
+                partner.cyclos_add_user(currency)
+        request.assert_not_called()
+        self.assertFalse(partner.lcc_backend_ids)
 
     def test_registration_uses_configured_groups(self):
         currency = self._create_cyclos_currency(

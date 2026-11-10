@@ -76,8 +76,9 @@ class AlternativeCurrency(models.Model):
 
     cyclos_password_type = fields.Char(
         string="Cyclos password type of wallets",
-        help="Internal name or id of the Cyclos password type that Odoo "
-        "sets when it forces the password of a wallet user.",
+        help="Internal name or id of the Cyclos password type that Cyclos "
+        "generates and e-mails to a new wallet user, and that Odoo sets "
+        "when it forces the password of a wallet user.",
         default="-4307382460900696903",
         tracking=True,
     )

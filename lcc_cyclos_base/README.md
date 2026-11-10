@@ -40,14 +40,32 @@ match the Lokavaluto Cyclos configuration):
 - ``Cyclos reconversion account type``: system account type receiving
   the reconversion payments (default ``debit``; ``GET
   /api/system/accounts`` lists the system account types).
-- ``Cyclos password type of wallets``: password type set when Odoo
-  forces the password of a wallet user (default
-  ``-4307382460900696903``; the internal name, e.g. ``login``, also
-  works).
+- ``Cyclos password type of wallets``: password type that Cyclos
+  generates for a new wallet user, and that Odoo sets when it forces
+  the password of a wallet user (default ``-4307382460900696903``; the
+  internal name, e.g. ``login``, also works).
 - ``Cyclos group of person wallets`` / ``... company wallets``: groups
   in which Odoo creates the Cyclos user of a new wallet (defaults
   ``particuliers`` and ``professionnels``; ``GET
   /api/users/groups-for-registration`` lists the available ones).
+
+### Creating Cyclos wallets from Odoo
+
+Odoo never chooses the password of the Cyclos user it creates. It sends
+the password type without a value and lets Cyclos send its activation
+e-mail: once the user is active, Cyclos generates a temporary password
+and e-mails it with the login and the login page link. The member must
+change it at their first login on Cyclos.
+
+The partner therefore needs an e-mail address, and the Cyclos instance
+must:
+
+- be able to send e-mails;
+- allow sending the activation e-mail when an administrator registers
+  a user (``allowSetSendActivationEmail`` in ``GET
+  /api/users/data-for-new?group=<group>``);
+- have the e-mail enabled on the registration groups, and an activation
+  e-mail template ("Registration activated") worded for its members.
 
 ### OAuth Configuration
 

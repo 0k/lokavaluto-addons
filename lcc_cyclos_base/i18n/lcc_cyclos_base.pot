@@ -226,7 +226,7 @@ msgstr ""
 
 #. module: lcc_cyclos_base
 #: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_type
-msgid "Internal name or id of the Cyclos password type that Odoo sets when it forces the password of a wallet user."
+msgid "Internal name or id of the Cyclos password type that Cyclos generates and e-mails to a new wallet user, and that Odoo sets when it forces the password of a wallet user."
 msgstr ""
 
 #. module: lcc_cyclos_base
@@ -247,4 +247,11 @@ msgstr ""
 #. module: lcc_cyclos_base
 #: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_company
 msgid "Internal name of the Cyclos group in which Odoo creates the user of a new wallet for a company."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_partner.py:0
+#, python-format
+msgid "%s has no e-mail address: Cyclos needs it to send the new member their login details."
 msgstr ""

@@ -226,8 +226,8 @@ msgstr "Type de mot de passe Cyclos des portefeuilles"
 
 #. module: lcc_cyclos_base
 #: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_type
-msgid "Internal name or id of the Cyclos password type that Odoo sets when it forces the password of a wallet user."
-msgstr "Nom interne ou identifiant du type de mot de passe Cyclos qu'Odoo définit lorsqu'il force le mot de passe d'un utilisateur de portefeuille."
+msgid "Internal name or id of the Cyclos password type that Cyclos generates and e-mails to a new wallet user, and that Odoo sets when it forces the password of a wallet user."
+msgstr "Nom interne ou identifiant du type de mot de passe Cyclos que Cyclos génère et envoie par courriel à un nouvel utilisateur de portefeuille, et qu'Odoo définit lorsqu'il force le mot de passe d'un utilisateur de portefeuille."
 
 #. module: lcc_cyclos_base
 #: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_person
@@ -248,3 +248,10 @@ msgstr "Groupe Cyclos des portefeuilles de professionnels"
 #: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_company
 msgid "Internal name of the Cyclos group in which Odoo creates the user of a new wallet for a company."
 msgstr "Nom interne du groupe Cyclos dans lequel Odoo crée l'utilisateur d'un nouveau portefeuille de professionnel."
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_partner.py:0
+#, python-format
+msgid "%s has no e-mail address: Cyclos needs it to send the new member their login details."
+msgstr "%s n'a pas d'adresse courriel : Cyclos en a besoin pour envoyer au nouveau membre ses identifiants de connexion."
