@@ -101,20 +101,13 @@ class AlternativeCurrency(models.Model):
         tracking=True,
     )
 
-    cyclos_user_group_person = fields.Char(
-        string="Cyclos group of person wallets",
-        help="Internal name of the Cyclos group in which Odoo creates the "
-        "user of a new wallet for a person.",
-        default="particuliers",
-        tracking=True,
-    )
-
-    cyclos_user_group_company = fields.Char(
-        string="Cyclos group of company wallets",
-        help="Internal name of the Cyclos group in which Odoo creates the "
-        "user of a new wallet for a company.",
-        default="professionnels",
-        tracking=True,
+    cyclos_group_rule_ids = fields.One2many(
+        "cyclos.group.rule",
+        "alt_currency_id",
+        string="Cyclos group rules",
+        help="Rules choosing the Cyclos group in which Odoo creates the user "
+        "of a new wallet: the first active rule, by priority, whose holder "
+        "domain matches the holder gives the group.",
     )
 
     cyclos_debit_wallet_partner = fields.Many2one(
@@ -138,6 +131,21 @@ class AlternativeCurrency(models.Model):
             self.get_cyclos_server_domain(),
         )
         return res
+
+    def cyclos_group_rule_for_partner(self, partner):
+        """Return the Cyclos group rule giving the group of ``partner``'s new
+        Cyclos user, or an empty recordset if no rule matches."""
+        self.ensure_one()
+        partner.ensure_one()
+        rules = (
+            self.env["cyclos.group.rule"]
+            .sudo()
+            .search([("alt_currency_id", "=", self.id)], order="sequence, id")
+        )
+        return next(
+            (rule for rule in rules if rule._matching_partners(partner)),
+            rules.browse(),
+        )
 
     def get_cyclos_server_domain(self):
         self.ensure_one()

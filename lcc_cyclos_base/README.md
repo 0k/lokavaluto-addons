@@ -45,10 +45,34 @@ match the Lokavaluto Cyclos configuration):
   it forces the password of a wallet user (default
   ``-4307382460900696903``; the internal name, e.g. ``login``, also
   works).
-- ``Cyclos group of person wallets`` / ``... company wallets``: groups
-  in which Odoo creates the Cyclos user of a new wallet (defaults
-  ``particuliers`` and ``professionnels``; ``GET
-  /api/users/groups-for-registration`` lists the available ones).
+
+### Cyclos group of new wallets
+
+The ``Cyclos groups of new wallets`` rules of the currency choose the
+Cyclos group in which Odoo creates the user of a new wallet. Each rule
+has a priority, a domain on the holder (the contact of the wallet) and
+the internal name of a Cyclos group (``GET
+/api/users/groups-for-registration`` lists the available ones). Odoo
+uses the first active rule, by priority, whose domain matches the
+holder; it refuses to create the wallet when no rule matches. For
+instance:
+
+- priority 5, holders ``[('category_id.name', '=', 'Association')]``:
+  group ``associations``;
+- priority 10, holders ``[('is_company', '=', False)]``: group
+  ``individual``;
+- priority 20, holders ``[('is_company', '=', True)]``: group
+  ``professional``.
+
+Rules only apply when Odoo creates a Cyclos user: changing them moves
+no existing user. Only administrators edit them. The ``Preview the group
+of a holder`` button of the currency shows which rule and group a
+contact would get, without creating anything.
+
+Updating the module to version 16.0.1.5.0 replaces the former ``Cyclos
+group of person wallets`` / ``... company wallets`` settings of each
+Cyclos currency by two rules, ``Persons`` and ``Companies``, giving the
+same groups.
 
 ### Creating Cyclos wallets from Odoo
 

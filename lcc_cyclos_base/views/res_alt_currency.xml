@@ -20,9 +20,17 @@
 		<field name="cyclos_password_type" attrs="{'required': [('engine', '=', 'cyclos')]}" />
 		<field name="cyclos_web_url" placeholder="https://cyclos.example.org" />
 		<field name="cyclos_password_setup_return_page" placeholder="odooRedirect" />
-		<field name="cyclos_user_group_person" attrs="{'required': [('engine', '=', 'cyclos')]}" />
-		<field name="cyclos_user_group_company" attrs="{'required': [('engine', '=', 'cyclos')]}" />
 		<field name="cyclos_date_last_reconversion_check" />
+              </group>
+              <group name="cyclos_group_rules" string="Cyclos groups of new wallets"
+                  attrs="{'invisible': [('engine', '!=', 'cyclos')]}">
+                <field name="cyclos_group_rule_ids" nolabel="1" colspan="2"
+                    context="{'active_test': False, 'default_alt_currency_id': id}" />
+                <button name="%(lcc_cyclos_base.action_cyclos_group_rule_preview)d"
+                    type="action" string="Preview the group of a holder"
+                    class="btn-secondary" colspan="2"
+                    context="{'default_alt_currency_id': id}"
+                    attrs="{'invisible': [('id', '=', False)]}" />
               </group>
             </xpath>
         </field>

@@ -90,11 +90,20 @@ class ResPartner(models.Model):
                     % record.display_name
                 )
             backend_obj = self.env["res.partner.backend"]
-            group = (
-                alt_currency_id.cyclos_user_group_person
-                if record.company_type == "person"
-                else alt_currency_id.cyclos_user_group_company
-            )
+            rule = alt_currency_id.cyclos_group_rule_for_partner(record)
+            if not rule:
+                raise UserError(
+                    _(
+                        "No Cyclos group rule of %(currency)s matches "
+                        "%(partner)s: add one on the currency to choose the "
+                        "Cyclos group of their user."
+                    )
+                    % {
+                        "currency": alt_currency_id.display_name,
+                        "partner": record.display_name,
+                    }
+                )
+            group = rule.cyclos_group
             password = temporary_password()
             data = {
                 "username": record.id,

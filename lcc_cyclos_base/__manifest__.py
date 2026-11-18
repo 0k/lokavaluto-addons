@@ -6,7 +6,7 @@
     "author": "Lokavaluto",
     "website": "https://lokavaluto.fr",
     "category": "Website",
-    "version": "16.0.1.4.0",
+    "version": "16.0.1.5.0",
     "licence": "AGPL-3",
     # any module necessary for this one to work correctly
     "depends": [
@@ -21,6 +21,7 @@
         "security/ir_rule.xml",
         "security/ir.model.access.csv",
         "wizards/create_cyclos_wallet_wizard.xml",
+        "views/cyclos_group_rule.xml",
         "views/res_alt_currency.xml",
         "views/res_partner_view.xml",
         "views/wallet.xml",

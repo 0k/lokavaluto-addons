@@ -225,26 +225,6 @@ msgid "Cyclos password type of wallets"
 msgstr ""
 
 #. module: lcc_cyclos_base
-#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_person
-msgid "Cyclos group of person wallets"
-msgstr ""
-
-#. module: lcc_cyclos_base
-#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_person
-msgid "Internal name of the Cyclos group in which Odoo creates the user of a new wallet for a person."
-msgstr ""
-
-#. module: lcc_cyclos_base
-#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_company
-msgid "Cyclos group of company wallets"
-msgstr ""
-
-#. module: lcc_cyclos_base
-#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_company
-msgid "Internal name of the Cyclos group in which Odoo creates the user of a new wallet for a company."
-msgstr ""
-
-#. module: lcc_cyclos_base
 #. odoo-python
 #: code:addons/lcc_cyclos_base/models/res_partner.py:0
 #, python-format
@@ -436,4 +416,167 @@ msgstr ""
 #. module: lcc_cyclos_base
 #: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
 msgid "odooRedirect"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__active
+msgid "Active"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.cyclos_group_rule_view_form
+msgid "Archived"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.cyclos_group_rule_preview_view_form
+msgid "Close"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet__alt_currency_id
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__alt_currency_id
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__alt_currency_id
+msgid "Currency"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__cyclos_group
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__cyclos_group
+msgid "Cyclos group"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model,name:lcc_cyclos_base.model_cyclos_group_rule
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.cyclos_group_rule_view_form
+msgid "Cyclos group rule"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_group_rule_ids
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.cyclos_group_rule_view_tree
+msgid "Cyclos group rules"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+msgid "Cyclos groups of new wallets"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_cyclos_group_rule__partner_domain
+msgid "Domain on the holder (contact) of the new wallet."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__partner_id
+msgid "Holder"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__partner_domain
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.cyclos_group_rule_view_form
+msgid "Holders"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_cyclos_group_rule__cyclos_group
+#: model:ir.model.fields,help:lcc_cyclos_base.field_cyclos_group_rule_preview__cyclos_group
+msgid ""
+"Internal name of the Cyclos group in which Odoo creates the user (``GET "
+"/api/users/groups-for-registration`` lists them)."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__rule_id
+msgid "Matching rule"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__message
+msgid "Message"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__name
+msgid "Name"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_partner.py:0
+#, python-format
+msgid ""
+"No Cyclos group rule of %(currency)s matches %(partner)s: add one on the "
+"currency to choose the Cyclos group of their user."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/wizards/cyclos_group_rule_preview.py:0
+#, python-format
+msgid ""
+"No rule matches this holder: Odoo would refuse to create their Cyclos "
+"wallet."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.actions.act_window,name:lcc_cyclos_base.action_cyclos_group_rule_preview
+msgid "Preview Cyclos group"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model,name:lcc_cyclos_base.model_cyclos_group_rule_preview
+msgid "Preview of the Cyclos group of a new wallet"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.cyclos_group_rule_preview_view_form
+msgid "Preview the Cyclos group of a new wallet"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+msgid "Preview the group of a holder"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__sequence
+msgid "Priority"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_cyclos_group_rule__sequence
+msgid ""
+"Rules are tried by increasing priority; the first rule whose domain matches "
+"the holder gives the group."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_group_rule_ids
+msgid ""
+"Rules choosing the Cyclos group in which Odoo creates the user of a new "
+"wallet: the first active rule, by priority, whose holder domain matches the "
+"holder gives the group."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/cyclos_group_rule.py:0
+#, python-format
+msgid "The Cyclos group of rule %s is empty."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/cyclos_group_rule.py:0
+#, python-format
+msgid "The holder domain of rule %s is invalid: %s"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/cyclos_group_rule.py:0
+#, python-format
+msgid "a domain is a list, not %r"
 msgstr ""

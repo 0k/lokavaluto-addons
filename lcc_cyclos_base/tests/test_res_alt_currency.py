@@ -72,6 +72,9 @@ class TestCyclosRestCall(TransactionCase):
                 "cyclos_server_login": "611424",
                 "cyclos_server_password": "secret",
                 "cyclos_web_url": CYCLOS_WEB_URL,
+                "cyclos_group_rule_ids": [
+                    (0, 0, {"name": "Everyone", "cyclos_group": "members"})
+                ],
                 **values,
             }
         )
@@ -212,10 +215,6 @@ class TestCyclosRestCall(TransactionCase):
             response_text=response_text or _registration_response(),
         )
         return json.loads(sent[-1]["data"])
-
-    def _registration_group(self, currency, is_company=False):
-        partner = self._new_holder(is_company=is_company)
-        return self._registration_payload(currency, partner)["group"]
 
     def _password_setup_mails(self, partner):
         return self.env["mail.mail"].search(
@@ -434,23 +433,6 @@ class TestCyclosRestCall(TransactionCase):
                 partner.cyclos_add_user(currency)
         request.assert_not_called()
         self.assertFalse(partner.lcc_backend_ids)
-
-    def test_registration_uses_configured_groups(self):
-        currency = self._create_cyclos_currency(
-            cyclos_user_group_person="individual",
-            cyclos_user_group_company="professional",
-        )
-        self.assertEqual(self._registration_group(currency), "individual")
-        self.assertEqual(
-            self._registration_group(currency, is_company=True), "professional"
-        )
-
-    def test_registration_groups_default_to_lokavaluto_cyclos_names(self):
-        currency = self._create_cyclos_currency()
-        self.assertEqual(self._registration_group(currency), "particuliers")
-        self.assertEqual(
-            self._registration_group(currency, is_company=True), "professionnels"
-        )
 
 @tagged("post_install", "-at_install")
 class TestCyclosPasswordSetupRoute(HttpCase):

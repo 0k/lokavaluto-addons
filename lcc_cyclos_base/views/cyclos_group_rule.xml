@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="cyclos_group_rule_view_tree" model="ir.ui.view">
+        <field name="name">cyclos.group.rule.view.tree</field>
+        <field name="model">cyclos.group.rule</field>
+        <field name="arch" type="xml">
+            <tree string="Cyclos group rules">
+                <field name="sequence" widget="handle" />
+                <field name="name" />
+                <field name="partner_domain" />
+                <field name="cyclos_group" />
+                <field name="active" widget="boolean_toggle" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="cyclos_group_rule_view_form" model="ir.ui.view">
+        <field name="name">cyclos.group.rule.view.form</field>
+        <field name="model">cyclos.group.rule</field>
+        <field name="arch" type="xml">
+            <form string="Cyclos group rule">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                        attrs="{'invisible': [('active', '=', True)]}" />
+                    <field name="active" invisible="True" />
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" />
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="alt_currency_id" />
+                        <field name="sequence" />
+                        <field name="cyclos_group" />
+                    </group>
+                    <group name="domain" string="Holders">
+                        <field name="partner_domain" nolabel="1" colspan="2"
+                            widget="domain" options='{"model": "res.partner"}' />
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" />
+                    <field name="message_ids" />
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="cyclos_group_rule_preview_view_form" model="ir.ui.view">
+        <field name="name">cyclos.group.rule.preview.view.form</field>
+        <field name="model">cyclos.group.rule.preview</field>
+        <field name="arch" type="xml">
+            <form string="Preview the Cyclos group of a new wallet">
+                <sheet>
+                    <group>
+                        <field name="alt_currency_id" />
+                        <field name="partner_id" />
+                    </group>
+                    <group attrs="{'invisible': ['|', ('alt_currency_id', '=', False), ('partner_id', '=', False)]}">
+                        <field name="rule_id" attrs="{'invisible': [('rule_id', '=', False)]}" />
+                        <field name="cyclos_group" attrs="{'invisible': [('rule_id', '=', False)]}" />
+                        <field name="message" nolabel="1" colspan="2"
+                            class="text-danger"
+                            attrs="{'invisible': [('rule_id', '!=', False)]}" />
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Close" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cyclos_group_rule_preview" model="ir.actions.act_window">
+        <field name="name">Preview Cyclos group</field>
+        <field name="res_model">cyclos.group.rule.preview</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="cyclos_group_rule_preview_view_form" />
+        <field name="target">new</field>
+    </record>
+</odoo>
