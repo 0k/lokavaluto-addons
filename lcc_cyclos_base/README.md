@@ -79,6 +79,29 @@ which replaces the previous one, as long as the member has not chosen
 their password. Odoo refuses to create a wallet while the currency has
 no ``Cyclos web address``, or for a partner without an e-mail address.
 
+After choosing their password, the member stays on the Cyclos home
+page. To send them on to Odoo instead, set ``Cyclos page after the
+password is chosen`` on the currency to the internal name of a Cyclos
+content page that redirects to Odoo: Odoo adds
+``returnTo=page-content!page=<internal name>`` to the link, and Cyclos
+opens that page once the password is chosen. Cyclos only accepts its own
+pages there, and Odoo cannot create the page through the Cyclos API: a
+Cyclos administrator creates it once, in Content > Menu and pages, for
+the configuration of the member groups:
+
+- add a menu item of type "Content page", with an internal name (for
+  instance ``odooRedirect``);
+- as content, in source mode, HTML such as the following, where
+  ``odoo.example.org`` is the address of Odoo (Cyclos ignores
+  ``<script>`` and ``<meta http-equiv="refresh">``, but runs the
+  ``onerror`` attribute of an image):
+
+    ```html
+    <p>Redirecting to your account…</p>
+    <img src="/nonexistent.png" onerror="window.location='https://odoo.example.org/my/home'">
+    <p><a href="https://odoo.example.org/my/home">Continue</a></p>
+    ```
+
 The Cyclos instance must:
 
 - give the channel of its web interface (``main``, "Main web" /

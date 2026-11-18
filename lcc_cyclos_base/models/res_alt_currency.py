@@ -92,6 +92,15 @@ class AlternativeCurrency(models.Model):
         tracking=True,
     )
 
+    cyclos_password_setup_return_page = fields.Char(
+        string="Cyclos page after the password is chosen",
+        help="Internal name of a Cyclos content page (menu entry of type "
+        "content page) that Cyclos shows once the holder of a new wallet "
+        "has chosen their password; its content can send them on to "
+        "Odoo. Leave empty to leave them on the Cyclos home page.",
+        tracking=True,
+    )
+
     cyclos_user_group_person = fields.Char(
         string="Cyclos group of person wallets",
         help="Internal name of the Cyclos group in which Odoo creates the "

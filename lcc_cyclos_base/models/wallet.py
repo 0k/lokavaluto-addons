@@ -19,6 +19,8 @@ PASSWORD_SETUP_ROUTE = "/cyclos/set-password"
 PASSWORD_SETUP_TOKEN_BYTES = 32
 ## Internal name of the Cyclos channel of its web interface.
 CYCLOS_WEB_CHANNEL = "main"
+## Internal route of a Cyclos content page, followed by its internal name.
+CYCLOS_CONTENT_PAGE_ROUTE = "page-content!page="
 ## Status of a Cyclos password the holder chose themselves.
 CYCLOS_PASSWORD_CHOSEN_STATUS = "active"
 
@@ -269,8 +271,9 @@ class ResPartnerBackend(models.Model):
 
         While the holder has not chosen their password: the Cyclos web
         interface, with a session Odoo opens with the temporary password,
-        where Cyclos asks for the new one. Afterwards: the Cyclos web
-        interface, at its login page.
+        where Cyclos asks for the new one, then shows the currency's
+        return page if set. Afterwards: the Cyclos web interface, at its
+        login page.
         """
         self.ensure_one()
         web_url = self.alt_currency_id.cyclos_web_url.rstrip("/")
@@ -292,8 +295,12 @@ class ResPartnerBackend(models.Model):
                 "Principal-Type": CYCLOS_LOGIN_PRINCIPAL_TYPE,
             },
         )
-        session_token = json.loads(res.text)["sessionToken"]
-        return f"{web_url}/?{urlencode({'sessionToken': session_token})}"
+        query = {"sessionToken": json.loads(res.text)["sessionToken"]}
+        return_page = self.alt_currency_id.cyclos_password_setup_return_page
+        if return_page:
+            ## Cyclos opens this internal page once the password is chosen.
+            query["returnTo"] = f"{CYCLOS_CONTENT_PAGE_ROUTE}{return_page}"
+        return f"{web_url}/?{urlencode(query)}"
 
     def _cyclos_check_password_chosen(self) -> bool:
         """Forget the temporary password if Cyclos reports the holder's own.

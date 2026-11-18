@@ -2,6 +2,7 @@ import importlib.util
 import json
 import os
 from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs, urlsplit
 
 import requests
 from odoo.exceptions import AccessError, UserError
@@ -368,6 +369,36 @@ class TestCyclosRestCall(TransactionCase):
                 again.cyclos_password_setup_redirect(), "https://cyclos.example.test/"
             )
         request.assert_not_called()
+
+    def test_link_returns_to_configured_cyclos_page_after_password(self):
+        currency = self._create_cyclos_currency(
+            cyclos_web_url="https://cyclos.example.test",
+            cyclos_password_setup_return_page="odooRedirectPage",
+        )
+        wallet, _password = self._registered_wallet(currency)
+        cyclos = FakeCyclos(password_status="reset", session_token="member-session")
+        with patch(REQUEST_PATH, side_effect=cyclos):
+            url = urlsplit(wallet.cyclos_password_setup_redirect())
+        self.assertEqual(
+            (url.scheme, url.netloc, url.path), ("https", "cyclos.example.test", "/")
+        )
+        self.assertEqual(
+            parse_qs(url.query),
+            {
+                "sessionToken": ["member-session"],
+                "returnTo": ["page-content!page=odooRedirectPage"],
+            },
+        )
+
+    def test_no_return_page_once_password_chosen(self):
+        currency = self._create_cyclos_currency(
+            cyclos_web_url="https://cyclos.example.test",
+            cyclos_password_setup_return_page="odooRedirectPage",
+        )
+        wallet, _password = self._registered_wallet(currency)
+        with patch(REQUEST_PATH, side_effect=FakeCyclos(password_status="active")):
+            url = wallet.cyclos_password_setup_redirect()
+        self.assertEqual(url, "https://cyclos.example.test/")
 
     def test_password_kept_when_cyclos_status_unknown(self):
         wallet, password = self._registered_wallet(self._create_cyclos_currency())

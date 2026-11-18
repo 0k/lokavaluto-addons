@@ -426,3 +426,22 @@ msgstr "Portefeuille : oublier les mots de passe Cyclos provisoires remplacés p
 #: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
 msgid "https://cyclos.example.org"
 msgstr "https://cyclos.example.org"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_password_setup_return_page
+msgid "Cyclos page after the password is chosen"
+msgstr "Page Cyclos après le choix du mot de passe"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_setup_return_page
+msgid ""
+"Internal name of a Cyclos content page (menu entry of type content page) "
+"that Cyclos shows once the holder of a new wallet has chosen their password;"
+" its content can send them on to Odoo. Leave empty to leave them on the "
+"Cyclos home page."
+msgstr "Nom interne d'une page de contenu Cyclos (élément de menu de type page de contenu) que Cyclos affiche une fois que le titulaire d'un nouveau portefeuille a choisi son mot de passe ; son contenu peut le renvoyer vers Odoo. Laisser vide pour le laisser sur l'accueil de Cyclos."
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+msgid "odooRedirect"
+msgstr "odooRedirect"
