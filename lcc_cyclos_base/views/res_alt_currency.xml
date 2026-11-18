@@ -8,30 +8,60 @@
             ref="lcc_lokavaluto_app_connection.res_alt_currency_view_form" />
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
-              <group name="cyclos" string="Cyclos specific parameters" attrs="{'invisible': [('engine', '!=', 'cyclos')]}">
-		<field name="cyclos_server_url" />
-		<field name="cyclos_server_login" />
-		<field name="cyclos_server_principal_type" placeholder="username" />
-		<field name="cyclos_server_password" password="True" />
-		<field name="cyclos_debit_wallet_partner" />
-		<field name="cyclos_credit_payment_type_user" attrs="{'required': [('engine', '=', 'cyclos')]}" />
-		<field name="cyclos_credit_payment_type_pro" attrs="{'required': [('engine', '=', 'cyclos')]}" />
-		<field name="cyclos_reconversion_account_type" attrs="{'required': [('engine', '=', 'cyclos')]}" />
-		<field name="cyclos_password_type" attrs="{'required': [('engine', '=', 'cyclos')]}" />
-		<field name="cyclos_web_url" placeholder="https://cyclos.example.org" />
-		<field name="cyclos_password_setup_return_page" placeholder="odooRedirect" />
-		<field name="cyclos_date_last_reconversion_check" />
-              </group>
-              <group name="cyclos_group_rules" string="Cyclos groups of new wallets"
-                  attrs="{'invisible': [('engine', '!=', 'cyclos')]}">
-                <field name="cyclos_group_rule_ids" nolabel="1" colspan="2"
-                    context="{'active_test': False, 'default_alt_currency_id': id}" />
-                <button name="%(lcc_cyclos_base.action_cyclos_group_rule_preview)d"
-                    type="action" string="Preview the group of a holder"
-                    class="btn-secondary" colspan="2"
-                    context="{'default_alt_currency_id': id}"
-                    attrs="{'invisible': [('id', '=', False)]}" />
-              </group>
+              <notebook attrs="{'invisible': [('engine', '!=', 'cyclos')]}">
+                <page name="cyclos" string="Cyclos">
+                  <group name="cyclos" string="Cyclos specific parameters">
+                    <field name="cyclos_server_url" />
+                    <field name="cyclos_server_login" />
+                    <field name="cyclos_server_principal_type" placeholder="username" />
+                    <field name="cyclos_server_password" password="True" />
+                    <field name="cyclos_debit_wallet_partner" />
+                    <field name="cyclos_credit_payment_type_user" attrs="{'required': [('engine', '=', 'cyclos')]}" />
+                    <field name="cyclos_credit_payment_type_pro" attrs="{'required': [('engine', '=', 'cyclos')]}" />
+                    <field name="cyclos_reconversion_account_type" attrs="{'required': [('engine', '=', 'cyclos')]}" />
+                    <field name="cyclos_password_type" attrs="{'required': [('engine', '=', 'cyclos')]}" />
+                    <field name="cyclos_web_url" placeholder="https://cyclos.example.org" />
+                    <field name="cyclos_password_setup_return_page" placeholder="odooRedirect" />
+                    <field name="cyclos_date_last_reconversion_check" />
+                  </group>
+                  <group name="cyclos_group_rules" string="Cyclos groups of new wallets">
+                    <field name="cyclos_group_rule_ids" nolabel="1" colspan="2"
+                        context="{'active_test': False, 'default_alt_currency_id': id}" />
+                    <button name="%(lcc_cyclos_base.action_cyclos_group_rule_preview)d"
+                        type="action" string="Preview the group of a holder"
+                        class="btn-secondary" colspan="2"
+                        context="{'default_alt_currency_id': id}"
+                        attrs="{'invisible': [('id', '=', False)]}" />
+                  </group>
+                </page>
+                <page name="cyclos_user_fields" string="Cyclos user fields">
+                  <p class="text-muted">
+                    Fields of the Cyclos users of this currency, computed by Odoo
+                    from their wallet: sent when the Cyclos user is created, and
+                    by the synchronization. <b>Cyclos field</b>: <code>name</code>,
+                    <code>username</code>, <code>email</code> or the internal name
+                    of a custom field. <b>Value</b>: the name of a field of the
+                    wallet (<code>cyclos_login</code>), or a Python expression where
+                    the fields of the wallet are names and <code>record</code> is the
+                    wallet (<code>partner_id.city</code>,
+                    <code>partner_id.create_date.date()</code>); a value starting
+                    with <code>=</code> is always an expression. Only fields can be
+                    read. An empty value empties the Cyclos field; a Cyclos field
+                    not listed here is left as it is.
+                  </p>
+                  <field name="cyclos_user_field_ids" nolabel="1">
+                    <tree editable="bottom">
+                      <field name="sequence" widget="handle" />
+                      <field name="name" />
+                      <field name="value" />
+                    </tree>
+                  </field>
+                  <button name="cyclos_sync_all_user_fields" type="object"
+                      string="Synchronize all Cyclos users" class="btn-secondary"
+                      confirm="Send the computed fields of every Cyclos user of this currency to Cyclos?"
+                      attrs="{'invisible': [('id', '=', False)]}" />
+                </page>
+              </notebook>
             </xpath>
         </field>
     </record>

@@ -29,6 +29,9 @@
                     <button name="cyclos_disable_user" type="object" string="Disable Cyclos Wallet"
                         class="oe_highlight"
                         attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_status','=','disabled')]}" />
+                    <button name="cyclos_sync_user_fields" type="object"
+                        string="Synchronize to Cyclos"
+                        attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_id','=',False)]}" />
                     <button name="cyclos_send_password_setup_email" type="object"
                         string="Send password setup e-mail"
                         attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_password_pending','=',False)]}" />

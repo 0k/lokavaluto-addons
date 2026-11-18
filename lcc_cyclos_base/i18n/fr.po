@@ -588,3 +588,187 @@ msgstr "Le domaine des titulaires de la règle %s est invalide : %s"
 #, python-format
 msgid "a domain is a list, not %r"
 msgstr "un domaine est une liste, pas %r"
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_alt_currency.py:0
+#, python-format
+msgid "%(done)s users updated, %(failed)s failed."
+msgstr "%(done)s utilisateurs mis à jour, %(failed)s en échec."
+
+#. module: lcc_cyclos_base
+#: model:ir.model.constraint,message:lcc_cyclos_base.constraint_res_alt_currency_cyclos_user_field_cyclos_field_unique
+msgid "A Cyclos field can be mapped only once per currency."
+msgstr "Un champ Cyclos ne peut figurer qu'une fois par monnaie."
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/cyclos_user_field.py:0
+#, python-format
+msgid ""
+"Cannot compute the Cyclos field %(field)s of %(wallet)s from %(value)r: "
+"%(error)s"
+msgstr "Impossible de calculer le champ Cyclos %(field)s de %(wallet)s à partir de %(value)r : %(error)s"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet__create_uid
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__create_uid
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__create_uid
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet__create_date
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__create_date
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__create_date
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__name
+msgid "Cyclos field"
+msgstr "Champ Cyclos"
+
+#. module: lcc_cyclos_base
+#: model:ir.model,name:lcc_cyclos_base.model_res_alt_currency_cyclos_user_field
+msgid "Cyclos user field computed by Odoo"
+msgstr "Champ d'utilisateur Cyclos calculé par Odoo"
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_alt_currency.py:0
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+#, python-format
+msgid "Cyclos user fields"
+msgstr "Champs des utilisateurs Cyclos"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet__display_name
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__display_name
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__display_name
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_user_field_ids
+msgid "Fields of Cyclos users"
+msgstr "Champs des utilisateurs Cyclos"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_user_field_ids
+msgid ""
+"Fields of the Cyclos users of this currency that Odoo computes from their "
+"wallet and sends to Cyclos."
+msgstr "Champs des utilisateurs Cyclos de cette monnaie qu'Odoo calcule à partir de leur portefeuille et envoie à Cyclos."
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+msgid ""
+"Fields of the Cyclos users of this currency, computed by Odoo\n"
+"                    from their wallet: sent when the Cyclos user is created, and\n"
+"                    by the synchronization. <b>Cyclos field</b>: <code>name</code>,\n"
+"                    <code>username</code>, <code>email</code> or the internal name\n"
+"                    of a custom field. <b>Value</b>: the name of a field of the\n"
+"                    wallet (<code>cyclos_login</code>), or a Python expression where\n"
+"                    the fields of the wallet are names and <code>record</code> is the\n"
+"                    wallet (<code>partner_id.city</code>,\n"
+"                    <code>partner_id.create_date.date()</code>); a value starting\n"
+"                    with <code>=</code> is always an expression. Only fields can be\n"
+"                    read. An empty value empties the Cyclos field; a Cyclos field\n"
+"                    not listed here is left as it is."
+msgstr ""
+"Champs des utilisateurs Cyclos de cette monnaie, calculés par Odoo\n"
+"                    à partir de leur portefeuille : envoyés à la création de l'utilisateur Cyclos, et\n"
+"                    par la synchronisation. <b>Champ Cyclos</b> : <code>name</code>,\n"
+"                    <code>username</code>, <code>email</code> ou le nom interne\n"
+"                    d'un champ personnalisé. <b>Valeur</b> : le nom d'un champ du\n"
+"                    portefeuille (<code>cyclos_login</code>), ou une expression Python où\n"
+"                    les champs du portefeuille sont des noms et <code>record</code> est le\n"
+"                    portefeuille (<code>partner_id.city</code>,\n"
+"                    <code>partner_id.create_date.date()</code>) ; une valeur qui commence\n"
+"                    par <code>=</code> est toujours une expression. Seuls les champs peuvent être\n"
+"                    lus. Une valeur vide vide le champ Cyclos ; un champ Cyclos\n"
+"                    absent de cette liste est laissé tel quel."
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet__id
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__id
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__id
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__id
+msgid "ID"
+msgstr "ID"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__name
+msgid ""
+"Internal name of the field of the Cyclos user: ``name``, ``username``, "
+"``email``, or a custom field."
+msgstr "Nom interne du champ de l'utilisateur Cyclos : ``name``, ``username``, ``email``, ou un champ personnalisé."
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet____last_update
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule____last_update
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview____last_update
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field____last_update
+msgid "Last Modified on"
+msgstr "Dernière modification le"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet__write_uid
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__write_uid
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__write_uid
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_create_cyclos_wallet__write_date
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule__write_date
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_cyclos_group_rule_preview__write_date
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__value
+msgid ""
+"Name of a field of the wallet, or a Python expression where the fields of "
+"the wallet are names and ``record`` is the wallet. A value starting with "
+"``=`` is always a Python expression."
+msgstr "Nom d'un champ du portefeuille, ou expression Python où les champs du portefeuille sont des noms et ``record`` est le portefeuille. Une valeur qui commence par ``=`` est toujours une expression Python."
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+msgid ""
+"Send the computed fields of every Cyclos user of this currency to Cyclos?"
+msgstr "Envoyer à Cyclos les champs calculés de tous les utilisateurs Cyclos de cette monnaie ?"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__sequence
+msgid "Sequence"
+msgstr "Séquence"
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+msgid "Synchronize all Cyclos users"
+msgstr "Synchroniser tous les utilisateurs Cyclos"
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.wallet_cyclos_form_view
+msgid "Synchronize to Cyclos"
+msgstr "Synchroniser vers Cyclos"
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_alt_currency.py:0
+#, python-format
+msgid "The Cyclos user fields could not be sent: %s"
+msgstr "Les champs de l'utilisateur Cyclos n'ont pas pu être envoyés : %s"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__value
+msgid "Value"
+msgstr "Valeur"

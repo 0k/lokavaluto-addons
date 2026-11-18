@@ -335,6 +335,22 @@ class ResPartnerBackend(models.Model):
                     wallet.id,
                 )
 
+    def cyclos_sync_user_fields(self) -> None:
+        """Send to Cyclos the fields of its user computed by the mapping of
+        the currency; the fields not mapped keep their Cyclos value."""
+        for record in self:
+            currency = record.alt_currency_id
+            values = currency._cyclos_user_values(record)
+            res = currency.cyclos_rest_call(
+                "GET", f"/users/{record.cyclos_id}/data-for-edit"
+            )
+            user = json.loads(res.text)["user"]
+            currency.cyclos_rest_call(
+                "PUT",
+                f"/users/{record.cyclos_id}",
+                data=currency._cyclos_user_payload(values, user),
+            )
+
     def force_cyclos_password(self, password) -> None:
         for record in self:
             data = {

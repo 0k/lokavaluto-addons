@@ -8,7 +8,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 from werkzeug.exceptions import NotFound
 
-from odoo import fields, models
+from odoo import _, fields, models
+
+from .cyclos_user_field import CYCLOS_BASIC_USER_FIELDS
 
 _logger = logging.getLogger(__name__)
 
@@ -108,6 +110,14 @@ class AlternativeCurrency(models.Model):
         help="Rules choosing the Cyclos group in which Odoo creates the user "
         "of a new wallet: the first active rule, by priority, whose holder "
         "domain matches the holder gives the group.",
+    )
+
+    cyclos_user_field_ids = fields.One2many(
+        "res.alt.currency.cyclos.user.field",
+        "currency_id",
+        string="Fields of Cyclos users",
+        help="Fields of the Cyclos users of this currency that Odoo computes "
+        "from their wallet and sends to Cyclos.",
     )
 
     cyclos_debit_wallet_partner = fields.Many2one(
@@ -226,6 +236,78 @@ class AlternativeCurrency(models.Model):
                     )
             raise
         return res
+
+    def _cyclos_user_values_and_paths(self, wallet):
+        """Return the Cyclos user fields computed for ``wallet``, and the
+        paths, from the wallet, of the fields read to compute them."""
+        self.ensure_one()
+        paths = set()
+        values = {
+            line.name: line._cyclos_text(wallet, paths)
+            for line in self.cyclos_user_field_ids
+        }
+        ## A path leading to a longer one is implied by it.
+        paths = {
+            path
+            for path in paths
+            if not any(other.startswith(path + ".") for other in paths)
+        }
+        return values, paths
+
+    def _cyclos_user_values(self, wallet):
+        """Return the Cyclos user fields computed for ``wallet``."""
+        return self._cyclos_user_values_and_paths(wallet)[0]
+
+    def _cyclos_user_payload(self, values, user):
+        """Return the Cyclos ``user`` object with ``values`` applied.
+
+        Basic fields (name, login, e-mail) are keys of the user; the others
+        are its custom fields.
+        """
+        custom = {k: v for k, v in values.items() if k not in CYCLOS_BASIC_USER_FIELDS}
+        basic = {k: v for k, v in values.items() if k in CYCLOS_BASIC_USER_FIELDS}
+        return {
+            **user,
+            **basic,
+            "customValues": {**user.get("customValues", {}), **custom},
+        }
+
+    def cyclos_sync_all_user_fields(self):
+        """Send the computed fields of every Cyclos user of the currency.
+
+        A wallet whose update fails gets the error in its history; the
+        others are still updated.
+        """
+        self.ensure_one()
+        wallets = self.env["res.partner.backend"].search(
+            [
+                ("alt_currency_id", "=", self.id),
+                ("type", "=", "cyclos"),
+                ("cyclos_id", "!=", False),
+            ]
+        )
+        failed = self.env["res.partner.backend"]
+        for wallet in wallets:
+            try:
+                with self.env.cr.savepoint():
+                    wallet.cyclos_sync_user_fields()
+            except Exception as e:
+                _logger.warning("Cyclos user fields of %s not sent: %s", wallet, e)
+                failed |= wallet
+                wallet.message_post(
+                    body=_("The Cyclos user fields could not be sent: %s") % e
+                )
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Cyclos user fields"),
+                "message": _("%(done)s users updated, %(failed)s failed.")
+                % {"done": len(wallets - failed), "failed": len(failed)},
+                "type": "warning" if failed else "success",
+                "sticky": bool(failed),
+            },
+        }
 
     def build_cyclos_error_message(self, e):
         json_error = e.response.json()
