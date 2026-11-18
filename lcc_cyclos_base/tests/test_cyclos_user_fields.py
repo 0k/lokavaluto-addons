@@ -15,12 +15,14 @@ class FakeCyclosUsers:
 
     ``edit_data`` maps a Cyclos user id to the ``user`` object that
     ``GET /users/{id}/data-for-edit`` returns; ``refuse`` lists the user
-    ids whose update Cyclos refuses.
+    ids whose update Cyclos refuses; ``editable`` lists the fields Cyclos
+    lets Odoo set, when creating or editing a user.
     """
 
-    def __init__(self, edit_data=None, refuse=()):
+    def __init__(self, edit_data=None, refuse=(), editable=("name", "username", "email", "city", "other")):
         self.edit_data = edit_data or {}
         self.refuse = set(refuse)
+        self.field_actions = {name: {"edit": True} for name in editable}
         self.calls = []
 
     def sent(self, method, path):
@@ -34,7 +36,16 @@ class FakeCyclosUsers:
         self.calls.append((method, url, kwargs))
         if url.endswith("/data-for-edit"):
             user_id = url.split("/users/")[1].split("/")[0]
-            return MagicMock(text=json.dumps({"user": self.edit_data[user_id]}))
+            return MagicMock(
+                text=json.dumps(
+                    {
+                        "user": self.edit_data[user_id],
+                        "profileFieldActions": self.field_actions,
+                    }
+                )
+            )
+        if "/users/data-for-new" in url:
+            return MagicMock(text=json.dumps({"profileFieldActions": self.field_actions}))
         if method.lower() == "put":
             user_id = url.rsplit("/", 1)[1]
             if user_id in self.refuse:
@@ -222,6 +233,27 @@ class TestCyclosUserFields(TransactionCase):
                 "version": 4,
             },
         )
+
+    def test_sync_refuses_fields_cyclos_does_not_let_odoo_edit(self):
+        currency = self._currency({"city": "partner_id.city", "secret": '"x"'})
+        wallet = self._wallet(currency, cyclos_id="77")
+        user = {"name": "n", "username": "u", "email": "e", "customValues": {}, "version": 1}
+        cyclos = FakeCyclosUsers(edit_data={"77": user})
+        with patch(REQUEST_PATH, side_effect=cyclos):
+            with self.assertRaisesRegex(UserError, "secret"):
+                wallet.cyclos_sync_user_fields()
+        self.assertFalse(cyclos.sent("put", "/users/77"))
+
+    def test_creation_refuses_fields_cyclos_does_not_let_odoo_set(self):
+        currency = self._currency({"secret": '"x"'})
+        partner = self.env["res.partner"].create(
+            {"name": "New holder", "email": "new@example.test"}
+        )
+        cyclos = FakeCyclosUsers()
+        with patch(REQUEST_PATH, side_effect=cyclos):
+            with self.assertRaisesRegex(UserError, "secret"):
+                partner.cyclos_add_user(currency)
+        self.assertFalse(cyclos.sent("post", "/users"))
 
     def test_sync_all_continues_after_a_refused_wallet(self):
         currency = self._currency({"city": "partner_id.city"})

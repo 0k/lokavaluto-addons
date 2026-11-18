@@ -2,6 +2,7 @@ import json
 import logging
 import secrets
 import string
+from urllib.parse import urlencode
 
 import requests
 from odoo import _, models
@@ -148,18 +149,25 @@ class ResPartner(models.Model):
             }
             ## Fields computed from the mapping of the currency, on the
             ## wallet about to be created.
-            data = alt_currency_id._cyclos_user_payload(
-                alt_currency_id._cyclos_user_values(
-                    backend_obj.new(
-                        {
-                            "partner_id": record.id,
-                            "alt_currency_id": alt_currency_id.id,
-                            "type": "cyclos",
-                        }
-                    )
-                ),
-                data,
+            values = alt_currency_id._cyclos_user_values(
+                backend_obj.new(
+                    {
+                        "partner_id": record.id,
+                        "alt_currency_id": alt_currency_id.id,
+                        "type": "cyclos",
+                    }
+                )
             )
+            if values:
+                new_data = json.loads(
+                    alt_currency_id.cyclos_rest_call(
+                        "GET", f"/users/data-for-new?{urlencode({'group': group})}"
+                    ).text
+                )
+                alt_currency_id._cyclos_check_editable(
+                    values, new_data["profileFieldActions"], record.display_name
+                )
+            data = alt_currency_id._cyclos_user_payload(values, data)
             try:
                 res = alt_currency_id.cyclos_rest_call(
                     "POST",

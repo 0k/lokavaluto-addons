@@ -9,6 +9,7 @@ from requests.auth import HTTPBasicAuth
 from werkzeug.exceptions import NotFound
 
 from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 from .cyclos_user_field import CYCLOS_BASIC_USER_FIELDS
 
@@ -271,6 +272,33 @@ class AlternativeCurrency(models.Model):
             **basic,
             "customValues": {**user.get("customValues", {}), **custom},
         }
+
+    def _cyclos_check_editable(self, values, field_actions, holder):
+        """Refuse ``values`` holding fields Cyclos does not let Odoo set.
+
+        Cyclos silently ignores such fields: ``field_actions`` is the
+        ``profileFieldActions`` of its ``data-for-new`` or ``data-for-edit``
+        answer.
+        """
+        refused = sorted(
+            name
+            for name in values
+            if not field_actions.get(name, {}).get("edit")
+        )
+        if refused:
+            raise UserError(
+                _(
+                    "Cyclos does not let Odoo set the fields %(fields)s of "
+                    "the user of %(holder)s: remove them from the Cyclos user "
+                    "fields of %(currency)s, or give Odoo's Cyclos account the "
+                    "right to edit them."
+                )
+                % {
+                    "fields": ", ".join(refused),
+                    "holder": holder,
+                    "currency": self.display_name,
+                }
+            )
 
     def cyclos_sync_all_user_fields(self):
         """Send the computed fields of every Cyclos user of the currency.

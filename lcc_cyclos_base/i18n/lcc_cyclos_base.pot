@@ -752,3 +752,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency_cyclos_user_field__value
 msgid "Value"
 msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_alt_currency.py:0
+#, python-format
+msgid ""
+"Cyclos does not let Odoo set the fields %(fields)s of the user of "
+"%(holder)s: remove them from the Cyclos user fields of %(currency)s, or give"
+" Odoo's Cyclos account the right to edit them."
+msgstr ""

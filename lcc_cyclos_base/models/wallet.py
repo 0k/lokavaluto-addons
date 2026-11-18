@@ -344,7 +344,11 @@ class ResPartnerBackend(models.Model):
             res = currency.cyclos_rest_call(
                 "GET", f"/users/{record.cyclos_id}/data-for-edit"
             )
-            user = json.loads(res.text)["user"]
+            edit_data = json.loads(res.text)
+            currency._cyclos_check_editable(
+                values, edit_data["profileFieldActions"], record.display_name
+            )
+            user = edit_data["user"]
             currency.cyclos_rest_call(
                 "PUT",
                 f"/users/{record.cyclos_id}",
