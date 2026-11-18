@@ -77,19 +77,18 @@ class AlternativeCurrency(models.Model):
     cyclos_password_type = fields.Char(
         string="Cyclos password type of wallets",
         help="Internal name or id of the Cyclos password type of wallet "
-        "users: Odoo gives it a throwaway random value when it creates a "
+        "users: Odoo gives it a temporary random value when it creates a "
         "wallet user, and sets it when it forces the password of a wallet "
         "user.",
         default="-4307382460900696903",
         tracking=True,
     )
 
-    cyclos_password_setup_url = fields.Char(
-        string="Cyclos page to set a new member's password",
-        help="Web address that the e-mail sent to the holder of a new "
-        "wallet gives to set their Cyclos password. With the standard "
-        "Cyclos web interface, this is its forgotten password page: "
-        "``https://<cyclos server>/ui/forgot-password``.",
+    cyclos_web_url = fields.Char(
+        string="Cyclos web address",
+        help="Address of the Cyclos web interface (for instance "
+        "``https://cyclos.example.org``), where Odoo sends the holder of "
+        "a new wallet, already logged in, to choose their password.",
         tracking=True,
     )
 
@@ -160,13 +159,18 @@ class AlternativeCurrency(models.Model):
         data=None,
         api_login=False,
         api_password=False,
+        headers=None,
     ):
+        """Call the Cyclos REST API, as Odoo's account unless ``api_login``
+        and ``api_password`` are given; ``headers`` override the default
+        HTTP headers."""
         if data is None:
             data = {}
         self.ensure_one()
-        headers = {"Content-type": "application/json", "Accept": "text/plain"}
+        default_headers = {"Content-type": "application/json", "Accept": "text/plain"}
         if self.cyclos_server_principal_type:
-            headers["Principal-Type"] = self.cyclos_server_principal_type
+            default_headers["Principal-Type"] = self.cyclos_server_principal_type
+        headers = {**default_headers, **(headers or {})}
         requests.packages.urllib3.disable_warnings()
         if not api_login:
             api_login = self.cyclos_server_login

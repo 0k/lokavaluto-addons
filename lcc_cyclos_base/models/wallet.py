@@ -1,5 +1,7 @@
 import json
 import logging
+import secrets
+from urllib.parse import urlencode
 
 import requests
 
@@ -8,7 +10,17 @@ from odoo.exceptions import UserError
 
 from odoo.addons.lcc_lokavaluto_app_connection import tools
 
+from .res_partner import CYCLOS_LOGIN_PRINCIPAL_TYPE
+
 _logger = logging.getLogger(__name__)
+
+## Odoo route of the link e-mailed to set a new holder's Cyclos password.
+PASSWORD_SETUP_ROUTE = "/cyclos/set-password"
+PASSWORD_SETUP_TOKEN_BYTES = 32
+## Internal name of the Cyclos channel of its web interface.
+CYCLOS_WEB_CHANNEL = "main"
+## Status of a Cyclos password the holder chose themselves.
+CYCLOS_PASSWORD_CHOSEN_STATUS = "active"
 
 
 class ResPartnerBackend(models.Model):
@@ -25,6 +37,27 @@ class ResPartnerBackend(models.Model):
         tracking=True,
     )
     cyclos_status = fields.Char(string="Cyclos Status", tracking=True)
+    cyclos_initial_password = fields.Char(
+        string="Cyclos temporary password",
+        help="Password Odoo gave the Cyclos user at creation, kept until "
+        "Cyclos reports that the holder chose their own.",
+        groups="base.group_system",
+        copy=False,
+    )
+    cyclos_password_setup_token = fields.Char(
+        string="Cyclos password setup token",
+        help="Secret part of the link of the last password setup e-mail.",
+        groups="base.group_system",
+        copy=False,
+        index=True,
+    )
+    cyclos_password_pending = fields.Boolean(
+        string="Cyclos password not chosen yet",
+        help="The holder has not chosen their Cyclos password yet: Odoo "
+        "still keeps the temporary password.",
+        copy=False,
+        tracking=True,
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -184,17 +217,25 @@ class ResPartnerBackend(models.Model):
                 )
 
     def cyclos_send_password_setup_email(self) -> None:
-        """E-mail the holder their login and where to set their password."""
+        """E-mail the holder a new link to choose their Cyclos password.
+
+        The link replaces the one of any previous e-mail.
+        """
         template = self.env.ref("lcc_cyclos_base.mail_template_cyclos_password_setup")
         for record in self:
+            if not record.cyclos_password_pending:
+                raise UserError(
+                    _("The holder of %s already chose their Cyclos password.")
+                    % record.display_name
+                )
             missing = [
                 label
                 for label, value in (
                     (_("Cyclos login"), record.cyclos_login),
                     (_("holder e-mail"), record.partner_id.email),
                     (
-                        _("Cyclos page to set a new member's password"),
-                        record.alt_currency_id.cyclos_password_setup_url,
+                        _("Cyclos web address"),
+                        record.alt_currency_id.cyclos_web_url,
                     ),
                 )
                 if not value
@@ -204,7 +245,88 @@ class ResPartnerBackend(models.Model):
                     _("Cannot send the password setup e-mail of %s: missing %s.")
                     % (record.display_name, ", ".join(missing))
                 )
-            template.send_mail(record.id)
+            token = secrets.token_urlsafe(PASSWORD_SETUP_TOKEN_BYTES)
+            record.sudo().cyclos_password_setup_token = token
+            link = f"{record.get_base_url()}{PASSWORD_SETUP_ROUTE}/{token}"
+            template.with_context(cyclos_password_setup_link=link).send_mail(
+                record.id
+            )
+
+    @api.model
+    def _cyclos_wallet_by_setup_token(self, token):
+        """Return the wallet whose password setup link carries ``token``."""
+        if not token:
+            return self.browse()
+        wallets = self.sudo().search(
+            [("type", "=", "cyclos"), ("cyclos_password_setup_token", "=", token)]
+        )
+        if len(wallets) > 1:
+            raise UserError(_("Several wallets share a password setup link."))
+        return wallets
+
+    def cyclos_password_setup_redirect(self) -> str:
+        """Return where the password setup link sends the holder.
+
+        While the holder has not chosen their password: the Cyclos web
+        interface, with a session Odoo opens with the temporary password,
+        where Cyclos asks for the new one. Afterwards: the Cyclos web
+        interface, at its login page.
+        """
+        self.ensure_one()
+        web_url = self.alt_currency_id.cyclos_web_url.rstrip("/")
+        if not self.cyclos_password_pending or self._cyclos_check_password_chosen():
+            return f"{web_url}/"
+        password = self.sudo().cyclos_initial_password
+        if not password:
+            raise UserError(
+                _("Odoo no longer has the temporary Cyclos password of %s.")
+                % self.display_name
+            )
+        res = self.alt_currency_id.cyclos_rest_call(
+            "POST",
+            "/auth/session",
+            api_login=self.cyclos_login,
+            api_password=password,
+            headers={
+                "Channel": CYCLOS_WEB_CHANNEL,
+                "Principal-Type": CYCLOS_LOGIN_PRINCIPAL_TYPE,
+            },
+        )
+        session_token = json.loads(res.text)["sessionToken"]
+        return f"{web_url}/?{urlencode({'sessionToken': session_token})}"
+
+    def _cyclos_check_password_chosen(self) -> bool:
+        """Forget the temporary password if Cyclos reports the holder's own.
+
+        Return whether the holder chose their password. Errors reaching
+        Cyclos are raised: the temporary password is then kept.
+        """
+        self.ensure_one()
+        res = self.alt_currency_id.cyclos_rest_call(
+            "GET",
+            f"/{self.cyclos_id}/passwords/{self.alt_currency_id.cyclos_password_type}",
+        )
+        if json.loads(res.text)["status"] != CYCLOS_PASSWORD_CHOSEN_STATUS:
+            return False
+        self.sudo().write(
+            {"cyclos_initial_password": False, "cyclos_password_pending": False}
+        )
+        return True
+
+    @api.model
+    def _cron_cyclos_check_password_setup(self) -> None:
+        """Forget the temporary passwords that holders have replaced."""
+        for wallet in self.sudo().search(
+            [("type", "=", "cyclos"), ("cyclos_password_pending", "=", True)]
+        ):
+            try:
+                wallet._cyclos_check_password_chosen()
+            except Exception:
+                _logger.exception(
+                    "Could not check the Cyclos password of wallet %s: "
+                    "its temporary password is kept.",
+                    wallet.id,
+                )
 
     def force_cyclos_password(self, password) -> None:
         for record in self:

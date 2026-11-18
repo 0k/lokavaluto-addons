@@ -9,26 +9,26 @@ from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-## Length of the throwaway password given to a new Cyclos user: the
+## Length of the temporary password given to a new Cyclos user: the
 ## maximum length of the login password type of the Cyclos instances
 ## Odoo connects to.
-THROWAWAY_PASSWORD_LENGTH = 32
-THROWAWAY_PASSWORD_ALPHABET = string.ascii_letters + string.digits
+TEMPORARY_PASSWORD_LENGTH = 32
+TEMPORARY_PASSWORD_ALPHABET = string.ascii_letters + string.digits
 
 ## Internal name of the Cyclos principal type a member logs in with.
 CYCLOS_LOGIN_PRINCIPAL_TYPE = "username"
 
 
-def throwaway_password():
-    """Return a random password that nobody will ever know or use.
+def temporary_password():
+    """Return a random password for a new Cyclos user, until they choose theirs.
 
     It contains at least one lowercase letter, one uppercase letter and
     one digit, so that Cyclos password policies requiring them accept it.
     """
     while True:
         password = "".join(
-            secrets.choice(THROWAWAY_PASSWORD_ALPHABET)
-            for _i in range(THROWAWAY_PASSWORD_LENGTH)
+            secrets.choice(TEMPORARY_PASSWORD_ALPHABET)
+            for _i in range(TEMPORARY_PASSWORD_LENGTH)
         )
         if (
             any(c.islower() for c in password)
@@ -65,17 +65,18 @@ class ResPartner(models.Model):
     def cyclos_add_user(self, alt_currency_id) -> None:
         """Create the Cyclos user and wallet of each partner.
 
-        Cyclos sends no e-mail and Odoo keeps no password: Odoo gives the
-        user a throwaway random password, then e-mails the member their
-        login and the page where they set their own password (the Cyclos
-        forgotten password page). The member's e-mail is therefore
-        required.
+        Cyclos sends no e-mail. Odoo gives the user a random password
+        that Cyclos marks as to be changed, keeps it on the wallet, and
+        e-mails the member a link: the link opens a Cyclos session with
+        that password, where Cyclos makes the member choose their own.
+        Odoo forgets the temporary password once Cyclos reports the change.
+        The member's e-mail is therefore required.
         """
-        if not alt_currency_id.cyclos_password_setup_url:
+        if not alt_currency_id.cyclos_web_url:
             raise UserError(
                 _(
-                    "%s has no Cyclos page to set a new member's password: "
-                    "set it on the currency before creating Cyclos wallets."
+                    "%s has no Cyclos web address: set it on the currency "
+                    "before creating Cyclos wallets."
                 )
                 % alt_currency_id.display_name
             )
@@ -94,7 +95,7 @@ class ResPartner(models.Model):
                 if record.company_type == "person"
                 else alt_currency_id.cyclos_user_group_company
             )
-            password = throwaway_password()
+            password = temporary_password()
             data = {
                 "username": record.id,
                 "name": record.name,
@@ -102,14 +103,15 @@ class ResPartner(models.Model):
                 "group": group,
                 ## Cyclos needs a value for each password type set at
                 ## registration before it accepts to skip its activation
-                ## e-mail. The member replaces this one with their own.
+                ## e-mail. Marked as to be changed, it lets a session
+                ## opened with it change it without asking for it again.
                 "passwords": [
                     {
                         "type": alt_currency_id.cyclos_password_type,
                         "value": password,
                         "checkConfirmation": True,
                         "confirmationValue": password,
-                        "forceChange": False,
+                        "forceChange": True,
                     },
                 ],
                 "skipActivationEmail": True,
@@ -170,6 +172,12 @@ class ResPartner(models.Model):
                         "type": "cyclos",
                         "cyclos_create_response": res.text,
                     },
+                )
+                wallet.sudo().write(
+                    {
+                        "cyclos_initial_password": password,
+                        "cyclos_password_pending": True,
+                    }
                 )
                 wallet.cyclos_send_password_setup_email()
 

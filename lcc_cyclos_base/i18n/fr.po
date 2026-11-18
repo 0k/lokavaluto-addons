@@ -249,45 +249,9 @@ msgstr "Nom interne du groupe Cyclos dans lequel Odoo crée l'utilisateur d'un n
 #: code:addons/lcc_cyclos_base/models/res_partner.py:0
 #, python-format
 msgid ""
-"%s has no Cyclos page to set a new member's password: set it on the currency"
-" before creating Cyclos wallets."
-msgstr "%s n'a pas de page Cyclos où un nouveau membre choisit son mot de passe : renseignez-la sur la monnaie avant de créer des portefeuilles Cyclos."
-
-#. module: lcc_cyclos_base
-#. odoo-python
-#: code:addons/lcc_cyclos_base/models/res_partner.py:0
-#, python-format
-msgid ""
 "%s has no e-mail address: Odoo needs it to send the new member their login "
 "details."
 msgstr "%s n'a pas d'adresse courriel : Odoo en a besoin pour envoyer au nouveau membre ses identifiants de connexion."
-
-#. module: lcc_cyclos_base
-#: model:mail.template,body_html:lcc_cyclos_base.mail_template_cyclos_password_setup
-msgid ""
-"<div>\n"
-"    <p>Hello <t t-out=\"object.partner_id.name or ''\"></t>,</p>\n"
-"    <p>Your <t t-out=\"object.alt_currency_id.name or ''\"></t> wallet has been created. To choose your password:</p>\n"
-"    <ol>\n"
-"        <li>open <a t-att-href=\"object.alt_currency_id.cyclos_password_setup_url\" t-out=\"object.alt_currency_id.cyclos_password_setup_url or ''\"></a>,</li>\n"
-"        <li>enter your login: <strong t-out=\"object.cyclos_login or ''\"></strong>,</li>\n"
-"        <li>enter the code you will then receive by e-mail (it is valid for one hour),</li>\n"
-"        <li>choose your password.</li>\n"
-"    </ol>\n"
-"</div>\n"
-"            "
-msgstr ""
-"<div>\n"
-"    <p>Bonjour <t t-out=\"object.partner_id.name or ''\"></t>,</p>\n"
-"    <p>Votre portefeuille <t t-out=\"object.alt_currency_id.name or ''\"></t> a été créé. Pour choisir votre mot de passe :</p>\n"
-"    <ol>\n"
-"        <li>ouvrez <a t-att-href=\"object.alt_currency_id.cyclos_password_setup_url\" t-out=\"object.alt_currency_id.cyclos_password_setup_url or ''\"></a>,</li>\n"
-"        <li>saisissez votre identifiant : <strong t-out=\"object.cyclos_login or ''\"></strong>,</li>\n"
-"        <li>saisissez le code que vous recevrez alors par courriel (il est valable une heure),</li>\n"
-"        <li>choisissez votre mot de passe.</li>\n"
-"    </ol>\n"
-"</div>\n"
-"            "
 
 #. module: lcc_cyclos_base
 #. odoo-python
@@ -315,25 +279,9 @@ msgid "Cyclos login"
 msgstr "Identifiant Cyclos"
 
 #. module: lcc_cyclos_base
-#. odoo-python
-#: code:addons/lcc_cyclos_base/models/wallet.py:0
-#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_password_setup_url
-#, python-format
-msgid "Cyclos page to set a new member's password"
-msgstr "Page Cyclos où un nouveau membre choisit son mot de passe"
-
-#. module: lcc_cyclos_base
 #: model:mail.template,name:lcc_cyclos_base.mail_template_cyclos_password_setup
 msgid "Cyclos wallet: set your password"
 msgstr "Portefeuille Cyclos : choisissez votre mot de passe"
-
-#. module: lcc_cyclos_base
-#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_type
-msgid ""
-"Internal name or id of the Cyclos password type of wallet users: Odoo gives "
-"it a throwaway random value when it creates a wallet user, and sets it when "
-"it forces the password of a wallet user."
-msgstr "Nom interne ou identifiant du type de mot de passe Cyclos des utilisateurs de portefeuille : Odoo lui donne une valeur aléatoire jetable quand il crée un utilisateur de portefeuille, et le définit lorsqu'il force le mot de passe d'un utilisateur de portefeuille."
 
 #. module: lcc_cyclos_base
 #: model:ir.model.fields,help:lcc_cyclos_base.field_res_partner_backend__cyclos_login
@@ -348,14 +296,6 @@ msgid "Send password setup e-mail"
 msgstr "Envoyer le courriel de choix du mot de passe"
 
 #. module: lcc_cyclos_base
-#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_setup_url
-msgid ""
-"Web address that the e-mail sent to the holder of a new wallet gives to set "
-"their Cyclos password. With the standard Cyclos web interface, this is its "
-"forgotten password page: ``https://<cyclos server>/ui/forgot-password``."
-msgstr "Adresse web que le courriel envoyé au titulaire d'un nouveau portefeuille indique pour choisir son mot de passe Cyclos. Avec l'interface web standard de Cyclos, c'est sa page de mot de passe oublié : ``https://<serveur cyclos>/ui/forgot-password``."
-
-#. module: lcc_cyclos_base
 #: model:mail.template,subject:lcc_cyclos_base.mail_template_cyclos_password_setup
 msgid "Your {{ object.alt_currency_id.name }} wallet: set your password"
 msgstr "Votre portefeuille {{ object.alt_currency_id.name }} : choisissez votre mot de passe"
@@ -366,3 +306,123 @@ msgstr "Votre portefeuille {{ object.alt_currency_id.name }} : choisissez votre 
 #, python-format
 msgid "holder e-mail"
 msgstr "courriel du titulaire"
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_partner.py:0
+#, python-format
+msgid ""
+"%s has no Cyclos web address: set it on the currency before creating Cyclos "
+"wallets."
+msgstr "%s n'a pas d'adresse web Cyclos : renseignez-la sur la monnaie avant de créer des portefeuilles Cyclos."
+
+#. module: lcc_cyclos_base
+#: model:mail.template,body_html:lcc_cyclos_base.mail_template_cyclos_password_setup
+msgid ""
+"<div>\n"
+"    <p>Hello <t t-out=\"object.partner_id.name or ''\"></t>,</p>\n"
+"    <p>Your <t t-out=\"object.alt_currency_id.name or ''\"></t> wallet has been created.</p>\n"
+"    <p>To choose your password, follow this link: <a t-att-href=\"ctx.get('cyclos_password_setup_link')\" t-out=\"ctx.get('cyclos_password_setup_link') or ''\"></a></p>\n"
+"    <p>Your login is: <strong t-out=\"object.cyclos_login or ''\"></strong></p>\n"
+"    <p>This link remains valid until you have chosen your password.</p>\n"
+"</div>\n"
+"            "
+msgstr ""
+"<div>\n"
+"    <p>Bonjour <t t-out=\"object.partner_id.name or ''\"></t>,</p>\n"
+"    <p>Votre portefeuille <t t-out=\"object.alt_currency_id.name or ''\"></t> a été créé.</p>\n"
+"    <p>Pour choisir votre mot de passe, suivez ce lien : <a t-att-href=\"ctx.get('cyclos_password_setup_link')\" t-out=\"ctx.get('cyclos_password_setup_link') or ''\"></a></p>\n"
+"    <p>Votre identifiant est : <strong t-out=\"object.cyclos_login or ''\"></strong></p>\n"
+"    <p>Ce lien reste valable jusqu'à ce que vous ayez choisi votre mot de passe.</p>\n"
+"</div>\n"
+"            "
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_web_url
+msgid ""
+"Address of the Cyclos web interface (for instance "
+"``https://cyclos.example.org``), where Odoo sends the holder of a new "
+"wallet, already logged in, to choose their password."
+msgstr "Adresse de l'interface web de Cyclos (par exemple ``https://cyclos.example.org``), où Odoo envoie le titulaire d'un nouveau portefeuille, déjà connecté, choisir son mot de passe."
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_partner_backend__cyclos_password_pending
+msgid "Cyclos password not chosen yet"
+msgstr "Mot de passe Cyclos pas encore choisi"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_partner_backend__cyclos_password_setup_token
+msgid "Cyclos password setup token"
+msgstr "Jeton de choix du mot de passe Cyclos"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_partner_backend__cyclos_initial_password
+msgid "Cyclos temporary password"
+msgstr "Mot de passe Cyclos provisoire"
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_web_url
+#, python-format
+msgid "Cyclos web address"
+msgstr "Adresse web Cyclos"
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_type
+msgid ""
+"Internal name or id of the Cyclos password type of wallet users: Odoo gives "
+"it a temporary random value when it creates a wallet user, and sets it when "
+"it forces the password of a wallet user."
+msgstr "Nom interne ou identifiant du type de mot de passe Cyclos des utilisateurs de portefeuille : Odoo lui donne une valeur aléatoire provisoire quand il crée un utilisateur de portefeuille, et le définit lorsqu'il force le mot de passe d'un utilisateur de portefeuille."
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#, python-format
+msgid "Odoo no longer has the temporary Cyclos password of %s."
+msgstr "Odoo n'a plus le mot de passe Cyclos provisoire de %s."
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_partner_backend__cyclos_initial_password
+msgid ""
+"Password Odoo gave the Cyclos user at creation, kept until Cyclos reports "
+"that the holder chose their own."
+msgstr "Mot de passe donné par Odoo à l'utilisateur Cyclos à sa création, gardé jusqu'à ce que Cyclos indique que le titulaire a choisi le sien."
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_partner_backend__cyclos_password_setup_token
+msgid "Secret part of the link of the last password setup e-mail."
+msgstr "Partie secrète du lien du dernier courriel de choix du mot de passe."
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#, python-format
+msgid "Several wallets share a password setup link."
+msgstr "Plusieurs portefeuilles ont le même lien de choix du mot de passe."
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_partner_backend__cyclos_password_pending
+msgid ""
+"The holder has not chosen their Cyclos password yet: Odoo still keeps the "
+"temporary password."
+msgstr "Le titulaire n'a pas encore choisi son mot de passe Cyclos : Odoo garde encore le mot de passe provisoire."
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#, python-format
+msgid "The holder of %s already chose their Cyclos password."
+msgstr "Le titulaire de %s a déjà choisi son mot de passe Cyclos."
+
+#. module: lcc_cyclos_base
+#: model:ir.actions.server,name:lcc_cyclos_base.ir_cron_cyclos_check_password_setup_ir_actions_server
+#: model:ir.cron,cron_name:lcc_cyclos_base.ir_cron_cyclos_check_password_setup
+msgid "Wallet: forget Cyclos temporary passwords replaced by holders"
+msgstr "Portefeuille : oublier les mots de passe Cyclos provisoires remplacés par les titulaires"
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.res_alt_currency_cyclos_view_form
+msgid "https://cyclos.example.org"
+msgstr "https://cyclos.example.org"

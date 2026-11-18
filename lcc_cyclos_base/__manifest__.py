@@ -6,7 +6,7 @@
     "author": "Lokavaluto",
     "website": "https://lokavaluto.fr",
     "category": "Website",
-    "version": "16.0.1.3.0",
+    "version": "16.0.1.4.0",
     "licence": "AGPL-3",
     # any module necessary for this one to work correctly
     "depends": [
@@ -26,6 +26,7 @@
         "views/wallet.xml",
         "data/cyclos_data.xml",
         "data/mail_template_cyclos_password_setup.xml",
+        "data/ir_cron_cyclos_password_setup.xml",
     ],
     "assets": {
         "web.assets_frontend": [

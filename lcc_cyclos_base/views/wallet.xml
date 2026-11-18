@@ -12,6 +12,7 @@
                     attrs="{'invisible': [('type','!=','cyclos')]}">
                     <field name="cyclos_id" />
                     <field name="cyclos_login" />
+                    <field name="cyclos_password_pending" />
                     <field name="cyclos_status" />
                     <field name="cyclos_create_response" />
                 </group>
@@ -30,7 +31,7 @@
                         attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_status','=','disabled')]}" />
                     <button name="cyclos_send_password_setup_email" type="object"
                         string="Send password setup e-mail"
-                        attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_login','=',False)]}" />
+                        attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_password_pending','=',False)]}" />
                 </footer>
             </xpath>
 
