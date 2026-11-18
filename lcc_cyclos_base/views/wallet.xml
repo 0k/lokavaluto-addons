@@ -11,6 +11,7 @@
                 <group name="cyclos_specific" string="Cyclos specific"
                     attrs="{'invisible': [('type','!=','cyclos')]}">
                     <field name="cyclos_id" />
+                    <field name="cyclos_login" />
                     <field name="cyclos_status" />
                     <field name="cyclos_create_response" />
                 </group>
@@ -27,6 +28,9 @@
                     <button name="cyclos_disable_user" type="object" string="Disable Cyclos Wallet"
                         class="oe_highlight"
                         attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_status','=','disabled')]}" />
+                    <button name="cyclos_send_password_setup_email" type="object"
+                        string="Send password setup e-mail"
+                        attrs="{'invisible': ['|',('type','!=','cyclos'),('cyclos_login','=',False)]}" />
                 </footer>
             </xpath>
 

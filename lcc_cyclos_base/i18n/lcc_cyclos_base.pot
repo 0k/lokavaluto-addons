@@ -225,11 +225,6 @@ msgid "Cyclos password type of wallets"
 msgstr ""
 
 #. module: lcc_cyclos_base
-#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_type
-msgid "Internal name or id of the Cyclos password type that Cyclos generates and e-mails to a new wallet user, and that Odoo sets when it forces the password of a wallet user."
-msgstr ""
-
-#. module: lcc_cyclos_base
 #: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_user_group_person
 msgid "Cyclos group of person wallets"
 msgstr ""
@@ -253,5 +248,110 @@ msgstr ""
 #. odoo-python
 #: code:addons/lcc_cyclos_base/models/res_partner.py:0
 #, python-format
-msgid "%s has no e-mail address: Cyclos needs it to send the new member their login details."
+msgid ""
+"%s has no Cyclos page to set a new member's password: set it on the currency"
+" before creating Cyclos wallets."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_partner.py:0
+#, python-format
+msgid ""
+"%s has no e-mail address: Odoo needs it to send the new member their login "
+"details."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:mail.template,body_html:lcc_cyclos_base.mail_template_cyclos_password_setup
+msgid ""
+"<div>\n"
+"    <p>Hello <t t-out=\"object.partner_id.name or ''\"></t>,</p>\n"
+"    <p>Your <t t-out=\"object.alt_currency_id.name or ''\"></t> wallet has been created. To choose your password:</p>\n"
+"    <ol>\n"
+"        <li>open <a t-att-href=\"object.alt_currency_id.cyclos_password_setup_url\" t-out=\"object.alt_currency_id.cyclos_password_setup_url or ''\"></a>,</li>\n"
+"        <li>enter your login: <strong t-out=\"object.cyclos_login or ''\"></strong>,</li>\n"
+"        <li>enter the code you will then receive by e-mail (it is valid for one hour),</li>\n"
+"        <li>choose your password.</li>\n"
+"    </ol>\n"
+"</div>\n"
+"            "
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#, python-format
+msgid "Cannot send the password setup e-mail of %s: missing %s."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/res_partner.py:0
+#, python-format
+msgid ""
+"Cyclos created the user %s but did not return its login: Odoo cannot tell "
+"the new member how to log in. Check this user in Cyclos before creating the "
+"wallet again."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_partner_backend__cyclos_login
+#, python-format
+msgid "Cyclos login"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#: model:ir.model.fields,field_description:lcc_cyclos_base.field_res_alt_currency__cyclos_password_setup_url
+#, python-format
+msgid "Cyclos page to set a new member's password"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:mail.template,name:lcc_cyclos_base.mail_template_cyclos_password_setup
+msgid "Cyclos wallet: set your password"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_type
+msgid ""
+"Internal name or id of the Cyclos password type of wallet users: Odoo gives "
+"it a throwaway random value when it creates a wallet user, and sets it when "
+"it forces the password of a wallet user."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_partner_backend__cyclos_login
+msgid ""
+"Login of the Cyclos user of this wallet, as Cyclos returned it at creation "
+"(Cyclos may generate it)."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model_terms:ir.ui.view,arch_db:lcc_cyclos_base.wallet_cyclos_form_view
+msgid "Send password setup e-mail"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:ir.model.fields,help:lcc_cyclos_base.field_res_alt_currency__cyclos_password_setup_url
+msgid ""
+"Web address that the e-mail sent to the holder of a new wallet gives to set "
+"their Cyclos password. With the standard Cyclos web interface, this is its "
+"forgotten password page: ``https://<cyclos server>/ui/forgot-password``."
+msgstr ""
+
+#. module: lcc_cyclos_base
+#: model:mail.template,subject:lcc_cyclos_base.mail_template_cyclos_password_setup
+msgid "Your {{ object.alt_currency_id.name }} wallet: set your password"
+msgstr ""
+
+#. module: lcc_cyclos_base
+#. odoo-python
+#: code:addons/lcc_cyclos_base/models/wallet.py:0
+#, python-format
+msgid "holder e-mail"
 msgstr ""

@@ -76,10 +76,20 @@ class AlternativeCurrency(models.Model):
 
     cyclos_password_type = fields.Char(
         string="Cyclos password type of wallets",
-        help="Internal name or id of the Cyclos password type that Cyclos "
-        "generates and e-mails to a new wallet user, and that Odoo sets "
-        "when it forces the password of a wallet user.",
+        help="Internal name or id of the Cyclos password type of wallet "
+        "users: Odoo gives it a throwaway random value when it creates a "
+        "wallet user, and sets it when it forces the password of a wallet "
+        "user.",
         default="-4307382460900696903",
+        tracking=True,
+    )
+
+    cyclos_password_setup_url = fields.Char(
+        string="Cyclos page to set a new member's password",
+        help="Web address that the e-mail sent to the holder of a new "
+        "wallet gives to set their Cyclos password. With the standard "
+        "Cyclos web interface, this is its forgotten password page: "
+        "``https://<cyclos server>/ui/forgot-password``.",
         tracking=True,
     )
 

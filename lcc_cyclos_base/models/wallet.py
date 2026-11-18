@@ -3,7 +3,8 @@ import logging
 
 import requests
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 from odoo.addons.lcc_lokavaluto_app_connection import tools
 
@@ -17,6 +18,12 @@ class ResPartnerBackend(models.Model):
 
     cyclos_create_response = fields.Text(string="Cyclos create response", tracking=True)
     cyclos_id = fields.Char(string="Cyclos id", tracking=True)
+    cyclos_login = fields.Char(
+        string="Cyclos login",
+        help="Login of the Cyclos user of this wallet, as Cyclos returned "
+        "it at creation (Cyclos may generate it).",
+        tracking=True,
+    )
     cyclos_status = fields.Char(string="Cyclos Status", tracking=True)
 
     @api.model_create_multi
@@ -175,6 +182,29 @@ class ResPartnerBackend(models.Model):
                         "cyclos_status": data_res.get("status", ""),
                     },
                 )
+
+    def cyclos_send_password_setup_email(self) -> None:
+        """E-mail the holder their login and where to set their password."""
+        template = self.env.ref("lcc_cyclos_base.mail_template_cyclos_password_setup")
+        for record in self:
+            missing = [
+                label
+                for label, value in (
+                    (_("Cyclos login"), record.cyclos_login),
+                    (_("holder e-mail"), record.partner_id.email),
+                    (
+                        _("Cyclos page to set a new member's password"),
+                        record.alt_currency_id.cyclos_password_setup_url,
+                    ),
+                )
+                if not value
+            ]
+            if missing:
+                raise UserError(
+                    _("Cannot send the password setup e-mail of %s: missing %s.")
+                    % (record.display_name, ", ".join(missing))
+                )
+            template.send_mail(record.id)
 
     def force_cyclos_password(self, password) -> None:
         for record in self:

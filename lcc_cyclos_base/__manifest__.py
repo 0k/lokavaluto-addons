@@ -6,11 +6,12 @@
     "author": "Lokavaluto",
     "website": "https://lokavaluto.fr",
     "category": "Website",
-    "version": "16.0.1.2.1",
+    "version": "16.0.1.3.0",
     "licence": "AGPL-3",
     # any module necessary for this one to work correctly
     "depends": [
         "base",
+        "mail",
         "lcc_lokavaluto_app_connection",
         "lcc_members",
         "auth_oauth",
@@ -24,6 +25,7 @@
         "views/res_partner_view.xml",
         "views/wallet.xml",
         "data/cyclos_data.xml",
+        "data/mail_template_cyclos_password_setup.xml",
     ],
     "assets": {
         "web.assets_frontend": [

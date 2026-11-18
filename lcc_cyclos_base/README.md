@@ -40,10 +40,11 @@ match the Lokavaluto Cyclos configuration):
 - ``Cyclos reconversion account type``: system account type receiving
   the reconversion payments (default ``debit``; ``GET
   /api/system/accounts`` lists the system account types).
-- ``Cyclos password type of wallets``: password type that Cyclos
-  generates for a new wallet user, and that Odoo sets when it forces
-  the password of a wallet user (default ``-4307382460900696903``; the
-  internal name, e.g. ``login``, also works).
+- ``Cyclos password type of wallets``: password type that Odoo gives a
+  throwaway value when it creates a wallet user, and that it sets when
+  it forces the password of a wallet user (default
+  ``-4307382460900696903``; the internal name, e.g. ``login``, also
+  works).
 - ``Cyclos group of person wallets`` / ``... company wallets``: groups
   in which Odoo creates the Cyclos user of a new wallet (defaults
   ``particuliers`` and ``professionnels``; ``GET
@@ -51,21 +52,42 @@ match the Lokavaluto Cyclos configuration):
 
 ### Creating Cyclos wallets from Odoo
 
-Odoo never chooses the password of the Cyclos user it creates. It sends
-the password type without a value and lets Cyclos send its activation
-e-mail: once the user is active, Cyclos generates a temporary password
-and e-mails it with the login and the login page link. The member must
-change it at their first login on Cyclos.
+Cyclos sends no e-mail when Odoo creates a wallet user, and no password
+is ever sent to the member:
 
-The partner therefore needs an e-mail address, and the Cyclos instance
-must:
+1. Odoo creates the Cyclos user with a long random password that it
+   neither stores nor shows, and asks Cyclos to skip its activation
+   e-mail.
+2. Odoo stores the login Cyclos returns (Cyclos may generate it) on the
+   wallet, as ``Cyclos login``.
+3. Odoo e-mails the member (template "Cyclos wallet: set your password")
+   their login and the address of ``Cyclos page to set a new member's
+   password``, set on the currency.
+4. On that page, the member enters their login, then the code Cyclos
+   e-mails them, then the password of their choice.
+
+The ``Send password setup e-mail`` button of the wallet sends the e-mail
+again.
+
+With the standard Cyclos web interface, the page is the forgotten
+password page: ``https://<cyclos server>/ui/forgot-password``. Odoo
+refuses to create a wallet while the currency has no such page, or for a
+partner without an e-mail address.
+
+The Cyclos instance must:
 
 - be able to send e-mails;
-- allow sending the activation e-mail when an administrator registers
-  a user (``allowSetSendActivationEmail`` in ``GET
-  /api/users/data-for-new?group=<group>``);
-- have the e-mail enabled on the registration groups, and an activation
-  e-mail template ("Registration activated") worded for its members.
+- allow the forgotten password operation, with the code sent by e-mail
+  (``forgotPasswordMediums`` in ``GET /api/auth/data-for-login`` must
+  contain ``email``);
+- give the registration groups an initial status that lets their users
+  log in (``active``): Cyclos refuses the forgotten password operation
+  to other users;
+- accept the throwaway password: Odoo sends 32 letters and digits, so
+  the password type must allow at least 32 characters.
+
+The Cyclos e-mail with the code ("Recovery code") is also the one of a
+real forgotten password: if you reword it, keep it valid for both uses.
 
 ### OAuth Configuration
 

@@ -8,6 +8,17 @@ from odoo.modules.module import get_module_path
 from odoo.tests.common import TransactionCase
 
 REQUEST_PATH = "odoo.addons.lcc_cyclos_base.models.res_alt_currency.requests.request"
+PASSWORD_SETUP_URL = "https://cyclos.example.test/ui/forgot-password"
+
+
+def _registration_response(cyclos_id="1234", login="868256"):
+    """JSON answer of Cyclos to ``POST /users``, with ``login`` as username."""
+    principals = (
+        [{"type": {"internalName": "username"}, "value": login}] if login else []
+    )
+    return json.dumps(
+        {"user": {"id": cyclos_id}, "status": "active", "principals": principals}
+    )
 
 
 class TestCyclosRestCall(TransactionCase):
@@ -25,6 +36,7 @@ class TestCyclosRestCall(TransactionCase):
                 "cyclos_server_url": "https://cyclos.example.test/api",
                 "cyclos_server_login": "611424",
                 "cyclos_server_password": "secret",
+                "cyclos_password_setup_url": PASSWORD_SETUP_URL,
                 **values,
             }
         )
@@ -158,11 +170,11 @@ class TestCyclosRestCall(TransactionCase):
             {"name": "New holder", "is_company": is_company, "email": email}
         )
 
-    def _registration_payload(self, currency, partner):
+    def _registration_payload(self, currency, partner, response_text=None):
         """Register ``partner`` on ``currency``; return the JSON sent to Cyclos."""
         (sent,) = self._sent_requests(
             lambda: partner.cyclos_add_user(currency),
-            response_text='{"user": {"id": "1234"}, "status": "active"}',
+            response_text=response_text or _registration_response(),
         )
         return json.loads(sent[-1]["data"])
 
@@ -170,11 +182,93 @@ class TestCyclosRestCall(TransactionCase):
         partner = self._new_holder(is_company=is_company)
         return self._registration_payload(currency, partner)["group"]
 
-    def test_registration_lets_cyclos_email_credentials(self):
+    def _password_setup_mails(self, partner):
+        return self.env["mail.mail"].search(
+            [
+                ("model", "=", "res.partner.backend"),
+                ("res_id", "in", partner.lcc_backend_ids.ids),
+                ("recipient_ids", "in", partner.ids),
+            ]
+        )
+
+    def test_registration_is_silent_with_a_throwaway_password(self):
         currency = self._create_cyclos_currency(cyclos_password_type="login")
         payload = self._registration_payload(currency, self._new_holder())
-        self.assertEqual(payload["passwords"], [{"type": "login"}])
-        self.assertIs(payload["skipActivationEmail"], False)
+        self.assertIs(payload["skipActivationEmail"], True)
+        (password,) = payload["passwords"]
+        self.assertEqual(password["type"], "login")
+        self.assertRegex(password["value"], r"^[A-Za-z0-9]{32}$")
+
+    def test_registration_passwords_are_random(self):
+        currency = self._create_cyclos_currency()
+        first, second = (
+            self._registration_payload(
+                currency, self._new_holder(email=f"holder{i}@example.test")
+            )["passwords"][0]["value"]
+            for i in range(2)
+        )
+        self.assertNotEqual(first, second)
+
+    def test_throwaway_password_is_not_kept(self):
+        currency = self._create_cyclos_currency()
+        partner = self._new_holder()
+        password = self._registration_payload(currency, partner)["passwords"][0][
+            "value"
+        ]
+        wallet = partner.lcc_backend_ids
+        kept = [
+            json.dumps(wallet.read(), default=str),
+            json.dumps(wallet.message_ids.read(["body"]), default=str),
+            json.dumps(wallet.message_ids.tracking_value_ids.read(), default=str),
+            *self._password_setup_mails(partner).mapped("body_html"),
+        ]
+        self.assertNotIn(password, "".join(kept))
+
+    def test_registration_stores_cyclos_login(self):
+        currency = self._create_cyclos_currency()
+        partner = self._new_holder()
+        self._registration_payload(
+            currency, partner, _registration_response(login="868256")
+        )
+        self.assertEqual(partner.lcc_backend_ids.cyclos_login, "868256")
+
+    def test_registration_sends_password_setup_email(self):
+        currency = self._create_cyclos_currency(
+            cyclos_password_setup_url="https://cyclos.example.test/ui/forgot-password"
+        )
+        partner = self._new_holder()
+        self._registration_payload(
+            currency, partner, _registration_response(login="868256")
+        )
+        (mail,) = self._password_setup_mails(partner)
+        self.assertIn("https://cyclos.example.test/ui/forgot-password", mail.body_html)
+        self.assertIn("868256", mail.body_html)
+
+    def test_registration_refused_without_password_setup_url(self):
+        currency = self._create_cyclos_currency(cyclos_password_setup_url=False)
+        partner = self._new_holder()
+        with patch(REQUEST_PATH) as request:
+            with self.assertRaises(UserError):
+                partner.cyclos_add_user(currency)
+        request.assert_not_called()
+        self.assertFalse(partner.lcc_backend_ids)
+
+    def test_registration_fails_without_cyclos_login(self):
+        currency = self._create_cyclos_currency()
+        partner = self._new_holder()
+        with self.assertRaisesRegex(UserError, "4036690082383437672"):
+            self._registration_payload(
+                currency,
+                partner,
+                _registration_response(cyclos_id="4036690082383437672", login=None),
+            )
+
+    def test_password_setup_email_can_be_resent(self):
+        currency = self._create_cyclos_currency()
+        partner = self._new_holder()
+        self._registration_payload(currency, partner)
+        partner.lcc_backend_ids.cyclos_send_password_setup_email()
+        self.assertEqual(len(self._password_setup_mails(partner)), 2)
 
     def test_registration_refused_without_email(self):
         currency = self._create_cyclos_currency()
