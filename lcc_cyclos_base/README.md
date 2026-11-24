@@ -199,11 +199,14 @@ Follow instruction to:
 In _odoo_: General Settings, search for 'OAuth providers'. Create one with:
 
 - Same client-id then the one used in Cyclos
-- scope: "openid profile email" (space separated). The ``email`` scope is
-  required: Cyclos only returns the user e-mail in the ``userinfo``
-  response when it is requested. Odoo uses that e-mail to reconcile the
+- scope: "openid profile email" (space separated). Odoo first looks for
+  the Cyclos wallet (``res.partner.backend``) whose Cyclos id is the
+  logged-in Cyclos user: its partner's user is used, or created on that
+  partner. Without such a wallet, Odoo needs the e-mail to reconcile the
   login with an existing ``res.users`` (or create a new one) and to create
-  the ``res.partner.backend``.
+  the ``res.partner.backend``. Cyclos only returns the e-mail in the
+  ``userinfo`` response when the ``email`` scope is requested AND the
+  e-mail is enabled in the "My profile fields" of the user's product.
 - auth: ``${CYCLOS_URL}/api/oidc/authorize``
 - validation: ``${CYCLOS_URL}/api/oidc/token``
 - data: ``${CYCLOS_URL}/api/oidc/userinfo``

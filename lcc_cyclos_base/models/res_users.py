@@ -69,8 +69,8 @@ class ResUsers(models.Model):
             validation["user_id"] = validation["preferred_username"]
         return validation
 
-    ## Cyclos OAuth login: reconcile with an existing Odoo user by e-mail,
-    ## and guarantee the ``res.partner.backend`` exists.
+    ## Cyclos OAuth login: reconcile with an existing Odoo user, and
+    ## guarantee the ``res.partner.backend`` exists.
     ##
     ## ``oauth_data`` is what the base module calls ``validation``: the
     ## verified OAuth identity claims (token validation response merged
@@ -80,9 +80,15 @@ class ResUsers(models.Model):
     ## ``(oauth_uid, provider)`` and silently creates a fresh user
     ## otherwise.  For Cyclos we want, in order:
     ##   1. an existing user already linked to this Cyclos identity, or
-    ##   2. an existing Odoo user with the same e-mail (then link it), or
-    ##   3. a freshly created user (base behaviour).
+    ##   2. the owner of the Cyclos wallet whose ``cyclos_id`` is this
+    ##      identity (the OIDC ``sub`` is the Cyclos user id): its user,
+    ##      or a new user on that partner, or
+    ##   3. an existing Odoo user with the same e-mail (then link it), or
+    ##   4. a freshly created user (base behaviour).
     ## then ensure the partner owns the Cyclos wallet backend.
+    ##
+    ## Step 2 does not need the e-mail claim, which Cyclos only sends when
+    ## the e-mail is an enabled profile field of the user's product.
     ##
     ## Every precondition specific to Cyclos fails loud rather than
     ## silently degrading to a half-configured account.  Non-Cyclos
@@ -118,17 +124,6 @@ class ResUsers(models.Model):
 
         oauth_uid = oauth_data["user_id"]
         email = oauth_data.get("email")
-        # A Cyclos login without a usable e-mail cannot be reconciled and
-        # would otherwise create a junk ``provider_<n>_user_<uid>`` account.
-        if not email:
-            raise AccessDenied(
-                _(
-                    "Cyclos OAuth login for %(uid)s returned no e-mail; "
-                    "the 'email' scope must be requested and the Cyclos "
-                    "user must have an e-mail."
-                )
-                % {"uid": oauth_uid}
-            )
 
         # 1. already linked to this Cyclos identity?
         oauth_user = self.search(
@@ -140,11 +135,31 @@ class ResUsers(models.Model):
                 % oauth_uid
             )
 
-        # 2. otherwise, reconcile by e-mail with an existing Odoo user
+        # 2. otherwise, the owner of the Cyclos wallet of this identity
         if not oauth_user:
-            candidates = self.search([("login", "=", email)]) or self.search(
-                [("email", "=", email)]
-            )
+            wallet_partner = self._cyclos_wallet_partner(alt_currency, oauth_uid)
+            if wallet_partner:
+                oauth_user = self._cyclos_user_for_wallet_partner(
+                    wallet_partner, provider_id, oauth_data, params
+                )
+
+        if not oauth_user:
+            # A Cyclos login without wallet nor usable e-mail cannot be
+            # reconciled and would otherwise create a junk
+            # ``provider_<n>_user_<uid>`` account.
+            if not email:
+                raise AccessDenied(
+                    _(
+                        "Cyclos OAuth login for %(uid)s returned no e-mail "
+                        "and matches no Cyclos wallet; the 'email' scope "
+                        "must be requested and the Cyclos user must have "
+                        "an e-mail."
+                    )
+                    % {"uid": oauth_uid}
+                )
+
+            # 3. reconcile by e-mail with an existing Odoo user
+            candidates = self._cyclos_users_for_email(email)
             if len(candidates) > 1:
                 raise AccessDenied(
                     _(
@@ -162,43 +177,162 @@ class ResUsers(models.Model):
                     }
                 )
             else:
-                # 2.5. no user, but maybe a pre-existing partner with this
+                # 3.5. no user, but maybe a pre-existing partner with this
                 # e-mail (e.g. a member without a login yet): create the
                 # user *on that partner* instead of letting the base signup
-                # duplicate it.  Base ``signup(values, token)`` attaches the
-                # new user to the partner carrying the signup token; we
-                # inject that token in the OAuth ``state`` where the base
-                # ``_auth_oauth_signin`` expects it.
+                # duplicate it.
                 partner = self._cyclos_partner_for_email(email)
-                if partner:
-                    partner.sudo().signup_prepare()
-                    state = json.loads(params.get("state") or "{}")
-                    state["t"] = partner.sudo().signup_token
-                    params = dict(params, state=json.dumps(state))
-
-                # 3. fall back to the base create-user behaviour
-                login = super(ResUsers, self)._auth_oauth_signin(
-                    provider_id, oauth_data, params
+                # 4. otherwise the base create-user behaviour
+                oauth_user = self._cyclos_signup(
+                    provider_id, oauth_data, params, partner
                 )
-                oauth_user = self.search([("login", "=", login)])
-                if not oauth_user:
-                    raise AccessDenied(
-                        _(
-                            "Could not resolve the just-created Cyclos "
-                            "user %s."
-                        )
-                        % login
-                    )
-                if len(oauth_user) > 1:
-                    raise AccessDenied(
-                        _("Ambiguous login %(login)s: %(n)s users matched.")
-                        % {"login": login, "n": len(oauth_user)}
-                    )
 
         # By construction we now hold exactly one user.
         oauth_user.write({"oauth_access_token": params["access_token"]})
         oauth_user.sudo()._cyclos_ensure_wallet(alt_currency, oauth_uid)
         return oauth_user.login
+
+    @api.model
+    def _cyclos_users_for_email(self, email):
+        """Odoo users whose login, or else e-mail, is ``email``."""
+        return self.search([("login", "=", email)]) or self.search(
+            [("email", "=", email)]
+        )
+
+    @api.model
+    def _cyclos_wallet_partner(self, alt_currency, cyclos_owner_id):
+        """Return the partner owning the ``alt_currency`` wallet(s) whose
+        ``cyclos_id`` is ``cyclos_owner_id``, or an empty recordset.
+
+        Several wallets with that id are accepted only when they belong to
+        the same partner (duplicated imports exist); otherwise the identity
+        is ambiguous and we refuse to guess.
+        """
+        wallets = self.env["res.partner.backend"].sudo().search(
+            [
+                ("type", "=", "cyclos"),
+                ("alt_currency_id", "=", alt_currency.id),
+                ("cyclos_id", "=", cyclos_owner_id),
+            ]
+        )
+        partners = wallets.mapped("partner_id")
+        if len(partners) > 1:
+            raise AccessDenied(
+                _(
+                    "Cyclos identity %(uid)s is the owner of the Cyclos "
+                    "wallet of several partners (%(partners)s); cannot "
+                    "choose one."
+                )
+                % {
+                    "uid": cyclos_owner_id,
+                    "partners": partners.mapped("display_name"),
+                }
+            )
+        return partners
+
+    @api.model
+    def _cyclos_user_for_wallet_partner(self, partner, provider_id, oauth_data, params):
+        """Return the user to log in as ``partner``, the owner of the
+        Cyclos wallet of identity ``oauth_data["user_id"]``: its only user,
+        now linked to that identity, or a new user created on it.
+        """
+        oauth_uid = oauth_data["user_id"]
+        email = oauth_data.get("email")
+        if email:
+            others = self._cyclos_users_for_email(email).filtered(
+                lambda u: u.partner_id != partner
+            )
+            if others:
+                raise AccessDenied(
+                    _(
+                        "The Cyclos e-mail %(email)s belongs to user(s) "
+                        "%(logins)s, not to %(partner)s, the owner of the "
+                        "Cyclos wallet %(uid)s."
+                    )
+                    % {
+                        "email": email,
+                        "logins": others.mapped("login"),
+                        "partner": partner.display_name,
+                        "uid": oauth_uid,
+                    }
+                )
+
+        users = partner.with_context(active_test=False).user_ids
+        if len(users) > 1:
+            raise AccessDenied(
+                _(
+                    "%(partner)s, the owner of the Cyclos wallet %(uid)s, "
+                    "has several users (%(logins)s); cannot choose one."
+                )
+                % {
+                    "partner": partner.display_name,
+                    "uid": oauth_uid,
+                    "logins": users.mapped("login"),
+                }
+            )
+        if users:
+            if users.oauth_uid:
+                raise AccessDenied(
+                    _(
+                        "User %(login)s of %(partner)s, the owner of the "
+                        "Cyclos wallet %(uid)s, is already linked to another "
+                        "OAuth identity (%(other)s)."
+                    )
+                    % {
+                        "login": users.login,
+                        "partner": partner.display_name,
+                        "uid": oauth_uid,
+                        "other": users.oauth_uid,
+                    }
+                )
+            users.write({"oauth_provider_id": provider_id, "oauth_uid": oauth_uid})
+            return users
+
+        # The partner's own e-mail first: base signup writes the login
+        # e-mail on the partner, and Odoo's partner data stays the reference
+        # when the member changed the e-mail in Cyclos only.
+        login = partner.email or email
+        if not login:
+            raise AccessDenied(
+                _(
+                    "Neither Cyclos nor %(partner)s, the owner of the Cyclos "
+                    "wallet %(uid)s, gives an e-mail to use as login."
+                )
+                % {"partner": partner.display_name, "uid": oauth_uid}
+            )
+        return self._cyclos_signup(
+            provider_id, dict(oauth_data, email=login), params, partner
+        )
+
+    @api.model
+    def _cyclos_signup(self, provider_id, oauth_data, params, partner):
+        """Create the user of this Cyclos identity through the base
+        ``_auth_oauth_signin``, on ``partner`` when given.
+
+        Base ``signup(values, token)`` attaches the new user to the
+        partner carrying the signup token; we inject that token in the
+        OAuth ``state`` where the base ``_auth_oauth_signin`` expects it.
+        """
+        if partner:
+            partner.sudo().signup_prepare()
+            state = json.loads(params.get("state") or "{}")
+            state["t"] = partner.sudo().signup_token
+            params = dict(params, state=json.dumps(state))
+
+        login = super(ResUsers, self)._auth_oauth_signin(
+            provider_id, oauth_data, params
+        )
+        users = self.search([("login", "=", login)])
+        if not users:
+            raise AccessDenied(
+                _("Could not resolve the just-created Cyclos user %s.") % login
+            )
+        if len(users) > 1:
+            raise AccessDenied(
+                _("Ambiguous login %(login)s: %(n)s users matched.")
+                % {"login": login, "n": len(users)}
+            )
+        return users
 
     @api.model
     def _cyclos_partner_for_email(self, email):

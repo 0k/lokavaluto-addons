@@ -328,6 +328,170 @@ class TestCyclosAuthOauth(TransactionComponentCase):
         with self.assertRaises(AccessDenied):
             self.ResUsers._cyclos_partner_for_email("twin@example.test")
 
+    # --- reconciliation by Cyclos wallet ------------------------------------
+    #
+    # The OIDC ``sub`` is the Cyclos user id, which Odoo already stores as
+    # the wallet's ``cyclos_id``: the wallet identifies the member even when
+    # Cyclos does not expose the e-mail (product profile field disabled).
+
+    def _wallet(self, partner, cyclos_id=None, currency=None):
+        cyclos_id = cyclos_id or self.cyclos_uid
+        return self.ResPartnerBackend.create(
+            {
+                "partner_id": partner.id,
+                "alt_currency_id": (currency or self.cyclos_currency).id,
+                "cyclos_id": cyclos_id,
+                "name": f"cyclos:{cyclos_id}",
+                "cyclos_status": "active",
+            }
+        )
+
+    def _claims(self, **changes):
+        """Cyclos userinfo claims for ``self.cyclos_uid``, without e-mail
+        unless given."""
+        claims = {
+            "user_id": self.cyclos_uid,
+            "name": "Member",
+            "preferred_username": "407114",
+        }
+        claims.update(changes)
+        return claims
+
+    def _signin(self, claims):
+        return self.ResUsers._auth_oauth_signin(
+            self.provider.id, claims, dict(self.params)
+        )
+
+    def test_wallet_partner_without_user_gets_user_without_email_claim(self):
+        partner = self.ResPartner.create(
+            {"name": "Wally", "email": "wally@example.test"}
+        )
+        self._wallet(partner)
+
+        login = self._signin(self._claims())
+
+        user = self.ResUsers.search([("login", "=", login)])
+        self.assertEqual(user.partner_id, partner)
+        self.assertEqual(login, "wally@example.test")
+        self.assertEqual(user.oauth_uid, self.cyclos_uid)
+        self.assertEqual(user.oauth_provider_id, self.provider)
+
+    def test_wallet_partner_wins_over_email_partner(self):
+        wallet_partner = self.ResPartner.create(
+            {"name": "Owner", "email": "owner@example.test"}
+        )
+        self._wallet(wallet_partner)
+        self.ResPartner.create(
+            {"name": "Homonym", "email": "changed@example.test"}
+        )
+
+        login = self._signin(self._claims(email="changed@example.test"))
+
+        user = self.ResUsers.search([("login", "=", login)])
+        self.assertEqual(user.partner_id, wallet_partner)
+
+    def test_wallet_partner_single_user_is_linked(self):
+        user = self.ResUsers.create(
+            {"name": "Una", "login": "una-login", "email": "una@example.test"}
+        )
+        self._wallet(user.partner_id)
+
+        login = self._signin(self._claims())
+
+        self.assertEqual(login, "una-login")
+        user.invalidate_recordset()
+        self.assertEqual(user.oauth_uid, self.cyclos_uid)
+        self.assertEqual(user.oauth_provider_id, self.provider)
+
+    def test_wallet_partner_user_linked_elsewhere_raises(self):
+        user = self.ResUsers.create(
+            {
+                "name": "Vera",
+                "login": "vera@example.test",
+                "oauth_provider_id": self.provider.id,
+                "oauth_uid": "another-cyclos-identity",
+            }
+        )
+        self._wallet(user.partner_id)
+
+        with self.assertRaisesRegex(AccessDenied, "owner of the Cyclos wallet"):
+            self._signin(self._claims(email="vera@example.test"))
+
+    def test_wallet_on_two_partners_raises(self):
+        self._wallet(self.ResPartner.create({"name": "A", "email": "a@x.test"}))
+        self._wallet(self.ResPartner.create({"name": "B", "email": "b@x.test"}))
+
+        with self.assertRaisesRegex(AccessDenied, "owner of the Cyclos wallet"):
+            self._signin(self._claims(email="a@x.test"))
+
+    def test_duplicate_wallets_same_partner_ok(self):
+        partner = self.ResPartner.create(
+            {"name": "Twice", "email": "twice@example.test"}
+        )
+        self._wallet(partner)
+        self._wallet(partner)
+
+        login = self._signin(self._claims())
+
+        self.assertEqual(
+            self.ResUsers.search([("login", "=", login)]).partner_id, partner
+        )
+
+    def test_wallet_of_other_currency_ignored(self):
+        other_currency = self.ResAltCurrency.create(
+            {
+                "name": "Other Cyclos",
+                "ident": "othercyclos",
+                "active": True,
+                "engine": "cyclos",
+                "currency_unit_product_id": self.currency_unit_product.id,
+                "cyclos_server_url": "https://other-cyclos.example.test/api",
+            }
+        )
+        foreign = self.ResPartner.create(
+            {"name": "Foreign", "email": "foreign@example.test"}
+        )
+        self._wallet(foreign, currency=other_currency)
+        alice = self.ResPartner.create(
+            {"name": "Alice", "email": "alice@example.test"}
+        )
+
+        login = self._signin(self._claims(email="alice@example.test"))
+
+        user = self.ResUsers.search([("login", "=", login)])
+        self.assertEqual(user.partner_id, alice)
+
+    def test_wallet_partner_email_user_conflict_raises(self):
+        partner = self.ResPartner.create(
+            {"name": "Owner", "email": "owner@example.test"}
+        )
+        self._wallet(partner)
+        self.ResUsers.create(
+            {"name": "Someone else", "login": "taken@example.test"}
+        )
+
+        with self.assertRaisesRegex(AccessDenied, "owner of the Cyclos wallet"):
+            self._signin(self._claims(email="taken@example.test"))
+
+    def test_wallet_partner_without_any_email_raises(self):
+        self._wallet(self.ResPartner.create({"name": "Mute"}))
+
+        with self.assertRaisesRegex(AccessDenied, "owner of the Cyclos wallet"):
+            self._signin(self._claims())
+
+    def test_wallet_partner_several_users_raises(self):
+        partner = self.ResPartner.create(
+            {"name": "Shared", "email": "shared@example.test"}
+        )
+        for login in ("shared-1", "shared-2"):
+            self.ResUsers.create(
+                {"name": "Shared", "login": login, "partner_id": partner.id}
+            )
+        self._wallet(partner)
+
+        with self.assertRaisesRegex(AccessDenied, "owner of the Cyclos wallet"):
+            self._signin(self._claims(email="shared@example.test"))
+
     # --- backend creation ---------------------------------------------------
 
     def test_ensure_backend_creates_when_absent(self):
