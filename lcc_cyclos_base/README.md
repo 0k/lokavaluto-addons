@@ -210,6 +210,10 @@ In _odoo_: General Settings, search for 'OAuth providers'. Create one with:
 
 Only the client id will be used
 
+A member (portal user) who logs in with Cyclos lands on their portal home
+(``/my/home``), where Odoo would otherwise send them to the website home
+page. A page explicitly asked for (``/web/login?redirect=...``) is kept.
+
 Note: You must install `lcc_cyclos_base` module that corrects OAuth
 implementation in odoo.
 

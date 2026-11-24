@@ -1,7 +1,32 @@
+import json
+
 from odoo import http
 from odoo.http import request
 
+from odoo.addons.auth_oauth.controllers.main import OAuthController
+
 from ..models.wallet import PASSWORD_SETUP_ROUTE
+
+
+class CyclosOAuthController(OAuthController):
+    @http.route()
+    def signin(self, **kw):
+        """Send members who log in with Cyclos to their portal home."""
+        response = super().signin(**kw)
+        if not request.session.uid:
+            return response
+        provider = (
+            request.env["auth.oauth.provider"]
+            .sudo()
+            .browse(json.loads(kw["state"])["p"])
+            .exists()
+        )
+        if not provider:
+            return response
+        response.location = provider._cyclos_landing_url(
+            request.env.user, response.location
+        )
+        return response
 
 
 class CyclosPasswordSetup(http.Controller):
